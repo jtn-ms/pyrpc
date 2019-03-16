@@ -9,7 +9,7 @@ import json
 from base_handler import BaseHandler
 from utils import decimal_default,str_to_decimal,get_linenumber
 from .proxy import EthereumProxy
-from constants import ETH_IP_ADDR,ETH_RPC_PORT,ETH_DEFAULT_GAS_PRICE
+from constants import ETH_IP_ADDR,ETH_RPC_PORT,ETH_DEFAULT_GAS_PRICE,ETH_BLK_BUFFER_SIZE
 
 ip_addr, port = ETH_IP_ADDR,ETH_RPC_PORT
 default_gas = 21000
@@ -18,21 +18,12 @@ default_gasprice = ETH_DEFAULT_GAS_PRICE
 ####################################################################################################################
 # General ##########################################################################################################
 ####################################################################################################################
-
-class ETH_ListAccounts(BaseHandler):
-    def get(self):
-        rpc_connection = EthereumProxy(ip_addr, port)
-        try:
-            data = rpc_connection.eth_accounts()
-            self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
-        except Exception as e:
-            self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
-            print("ETH_Accounts error:{0} in {1}".format(e,get_linenumber()))
-              
+            
 class ETH_GetBalance(BaseHandler):
     @staticmethod
     def get_balance(rpc_connection,addr):
         balance = rpc_connection.eth_getBalance(addr)
+        print balance
         return balance/float(10**18)
 
     def get(self):
@@ -209,11 +200,26 @@ class ETH_SendRawTransaction(BaseHandler):
 ####################################################################################################################
 # Timer ############################################################################################################
 ####################################################################################################################
+class ETH_ListAccounts(BaseHandler):
+    @staticmethod
+    def addresses():
+        from sql import run
+        accounts = run('select address from t_ethereum_accounts')
+        return [account['address'] for account in accounts]
 
+    def get(self):
+        rpc_connection = EthereumProxy(ip_addr, port)
+        try:
+            data = ETH_ListAccounts.addresses()
+            self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
+        except Exception as e:
+            self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
+            print("ETH_Accounts error:{0} in {1}".format(e,get_linenumber()))
+            
 class ETH_BlockNumber(BaseHandler):
     @staticmethod
     def latest(rpc_connection):
-        return rpc_connection.eth_blockNumber()
+        return int(rpc_connection.eth_blockNumber())
 
     def get(self):
         rpc_connection = EthereumProxy(ip_addr, port)
@@ -224,38 +230,47 @@ class ETH_BlockNumber(BaseHandler):
             self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
             print("ETH_BlockNumber error:{0} in {1}".format(e,get_linenumber()))
 
-class ETH_GetTransactionFromBlock(BaseHandler):
-    @staticmethod
-    def process(rpc_connection,blknumber,txindex):
-        txdata =  rpc_connection.eth_getTransactionByBlockNumberAndIndex(blknumber,txindex)
-        from utils import filtered,alterkeyname
-        return filtered(alterkeyname(txdata,'hash','txid'),["nonce","hash","from","to","value","gas","gasPrice"])
-    def get(self):
-        rpc_connection = EthereumProxy(ip_addr, port)
-        try:
-            blknumber = int(self.get_argument("blknumber")) if self.get_argument("blknumber") else int(ETH_BlockNumber.latest(rpc_connection))
-            txindex = int(self.get_argument("txindex")) if self.get_argument("txindex") else 0
-            data = ETH_GetTransactionFromBlock.process(rpc_connection,blknumber,txindex)
-            self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
-        except Exception as e:
-            self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
-            print("ETH_GetTransactionFromBlock error:{0} in {1}".format(e,get_linenumber()))
-
 class ETH_GetBlockTransactionCount(BaseHandler):
     @staticmethod
+    def fromGetBlock(rpc_connection,blknumber):
+        blkheader = rpc_connection.eth_getBlockByNumber(blknumber)
+        return len(blkheader['transactions']) if blkheader else 0
+
+    @staticmethod
     def process(rpc_connection,blknumber):
-        return rpc_connection.eth_getBlockTransactionCountByNumber(blknumber)
+        blknumber = rpc_connection.eth_getBlockTransactionCountByNumber(blknumber)
+        return int(blknumber) if blknumber else 0
 
     def get(self):
         rpc_connection = EthereumProxy(ip_addr, port)
         try:
             blknumber = int(self.get_argument("blknumber")) if self.get_argument("blknumber") else int(ETH_BlockNumber.latest(rpc_connection))
-            data =  ETH_GetBlockTransactionCount.process(rpc_connection,blknumber)
+            data =  ETH_GetBlockTransactionCount.fromGetBlock(rpc_connection,blknumber)
             self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
         except Exception as e:
             self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
             print("ETH_GetBlockTransactionCount error:{0} in {1}".format(e,get_linenumber()))
 
+class ETH_GetTransactionFromBlock(BaseHandler):
+    @staticmethod
+    def process(rpc_connection,blknumber,txindex):
+        txdata =  rpc_connection.eth_getTransactionByBlockNumberAndIndex(blknumber,txindex)
+        from utils import filtered,alterkeyname
+        return filtered(alterkeyname(txdata,'hash','txid'),["nonce","hash","from","to","value","gas","gasPrice"]) if txdata else False
+
+    def get(self):
+        rpc_connection = EthereumProxy(ip_addr, port)
+        try:
+            blknumber = int(self.get_argument("blknumber")) if self.get_argument("blknumber") else int(ETH_BlockNumber.latest(rpc_connection))
+            txindex = int(self.get_argument("txindex")) if self.get_argument("txindex") else 0
+            ret = ETH_GetTransactionFromBlock.process(rpc_connection,blknumber,txindex)
+            if not ret:
+                self.write(json.dumps(BaseHandler.error_ret_with_data("no corresponding transaction or block body not found!!!")))
+                return
+            self.write(json.dumps(BaseHandler.success_ret_with_data(ret), default=decimal_default))
+        except Exception as e:
+            self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
+            print("ETH_GetTransactionFromBlock error:{0} in {1}".format(e,get_linenumber()))
 
 class ETH_GetBlockTransactions(BaseHandler):
     @staticmethod
@@ -263,19 +278,48 @@ class ETH_GetBlockTransactions(BaseHandler):
         txlist = []
         for index in range(txcount):
             txdata = ETH_GetTransactionFromBlock.process(rpc_connection,blknumber,index)
-            txlist.append(txdata)
+            if not txdata:
+                break
+            if any(txdata[address] in ETH_ListAccounts.addresses() for address in ['to','from']):
+                txlist.append(txdata)
         return txlist
 
     def post(self):
         rpc_connection = EthereumProxy(ip_addr, port)
         try:
-            blknumber = int(self.get_argument("blknumber")) if self.get_argument("blknumber") else int(ETH_BlockNumber.latest(rpc_connection))
-            txcount = int(ETH_GetBlockTransactionCount.process(rpc_connection,blknumber))
+            blknumber = int(self.get_argument("blknumber")) if self.get_argument("blknumber") else ETH_BlockNumber.latest(rpc_connection)
+            txcount = ETH_GetBlockTransactionCount.fromGetBlock(rpc_connection,blknumber)
             data = ETH_GetBlockTransactions.process(rpc_connection,blknumber,txcount)
             self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
         except Exception as e:
             self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
             print("ETH_GetBlockTransactions error:{0} in {1}".format(e,get_linenumber()))
+
+class ETH_CrawlTxData(BaseHandler):
+    @staticmethod
+    def process(rpc_connection,lastscannedblknumber):
+        addresses = ETH_ListAccounts.addresses()
+        lastblknumber = ETH_BlockNumber.latest(rpc_connection)
+        txlist = []
+        for blknumber in range(lastscannedblknumber+1, lastblknumber-ETH_BLK_BUFFER_SIZE):
+            txcount = ETH_GetBlockTransactionCount.fromGetBlock(rpc_connection,blknumber)
+            for index in range(txcount):
+                txdata = ETH_GetTransactionFromBlock.process(rpc_connection,blknumber,index)
+                if not txdata:
+                    return txlist
+                if any(txdata[address] in addresses for address in ['to','from']):
+                    txlist.append(txdata)
+        return txlist
+
+    def post(self):
+        rpc_connection = EthereumProxy(ip_addr, port)
+        try:
+            lastscannedblknumber = int(self.get_argument("blknumber"))
+            data = ETH_CrawlTxData.process(rpc_connection,lastscannedblknumber)
+            self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
+        except Exception as e:
+            self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
+            print("ETH_CrawlTxData error:{0} in {1}".format(e,get_linenumber()))
 
 ####################################################################################################################
 # Last Block Monitoring ############################################################################################

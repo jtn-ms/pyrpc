@@ -89,6 +89,21 @@ class BTC_WalletPassphrase(BaseHandler):
             self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
             print("BTC_WalletPassphrase error:{0} in {1}".format(e,get_linenumber()))
 
+class BTC_DumpPrivKey(BaseHandler):
+    @staticmethod
+    def privkey(rpcconn,passphrase):
+        commands = [["dumpprivkey", passphrase]]
+        data = rpcconn.batch_(commands)
+
+    def post(self):
+        btc_rpc_connection = AuthServiceProxy(BTC_RPC_URL)#todo-kojy-20180325
+        try:
+            data = BTC_DumpPrivKey.privkey(btc_rpc_connection,self.get_argument("address"))
+            self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
+        except Exception as e:
+            self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
+            print("BTC_WalletPassphrase error:{0} in {1}".format(e,get_linenumber()))
+
 class BTC_SendFrom(BaseHandler):
     def post(self):
         btc_rpc_connection = AuthServiceProxy(BTC_RPC_URL)#todo-kojy-20180325
@@ -223,11 +238,17 @@ class BTC_SendRawTransaction(BaseHandler):
 
 class BTC_ListTransActions(BaseHandler):
     @staticmethod
+    def blktimes(rpc_connection,account="*",tx_counts=10):
+        commands = [["listtransactions",account,tx_counts]]
+        data = rpc_connection.batch_(commands)
+        return [item['blocktime'] for item in data[0]][::-1]
+
+    @staticmethod
     def process(rpc_connection,account="*",tx_counts=10,skips=0):
         commands = [["listtransactions",account,tx_counts,skips]]
         data = rpc_connection.batch_(commands)
         from utils import filtered
-        return [filtered(item,["address","category","amount","confirmations","txid","time"]) for item in data[0]]
+        return [filtered(item,["address","category","amount","confirmations","txid","blocktime"]) for item in data[0]][::-1]
 
     def get(self):
         btc_rpc_connection = AuthServiceProxy(BTC_RPC_URL)#todo-kojy-20190315
@@ -241,42 +262,87 @@ class BTC_ListTransActions(BaseHandler):
             self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
             print("BTC_ListTransActions error:{0} in {1}".format(e,get_linenumber()))
 
+class BTC_CrawlTxData(BaseHandler):
+    @staticmethod
+    def process(rpc_connection,lastscannedblktime):
+        count = 10
+        while 1:
+            transactions = BTC_ListTransActions.process(rpc_connection,'*',count)
+            blktimes = [int(item['blocktime']) for item in transactions]
+            if blktimes[0] < lastscannedblktime:
+                return []
+            if lastscannedblktime in blktimes:
+                return [transaction for transaction in transactions if int(transaction['blocktime'] >= lastscannedblktime)]
+            if count > len(blktimes):
+                return transactions
+            count += 2 * (blktimes[::-1][0] - lastscannedblktime)
+
+    def post(self):
+        rpc_connection = AuthServiceProxy(BTC_RPC_URL)#todo-kojy-20190316
+        try:
+            lastscannedblktime = int(self.get_argument("blocktime"))
+            data = BTC_CrawlTxData.process(rpc_connection,lastscannedblktime)
+            self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
+        except Exception as e:
+            self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
+            print("ETH_CrawlTxData error:{0} in {1}".format(e,get_linenumber()))
+
 ####################################################################################################################
 # Block Monitoring #################################################################################################
 ####################################################################################################################
 
+class BTC_ListAccounts(BaseHandler):
+    @staticmethod
+    def addresses():
+        from sql import run
+        accounts = run('select address from t_bitcoin_accounts')
+        return [account['address'] for account in accounts]
+
+    def get(self):
+        btc_rpc_connection = AuthServiceProxy(BTC_RPC_URL)
+        try:
+            data = BTC_ListAccounts.addresses()
+            self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
+        except Exception as e:
+            self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
+            print("BTC_ListAccounts error:{0} in {1}".format(e,get_linenumber()))
+
 class BTC_GetBlockCount(BaseHandler):
+    @staticmethod
     def process(rpcconn):
         commands = [["getblockcount"]]
-        return rpcconn.batch_(commands)
+        return int(rpcconn.batch_(commands))
 
     def get(self):
         btc_rpc_connection = AuthServiceProxy(BTC_RPC_URL)#todo-kojy-20190310
         try:
-            commands = [["getblockcount"]]
-            data = BTC_GetBlockCount.process(btc_rpc_connection)
-            self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
+            blknumber = BTC_GetBlockCount.process(btc_rpc_connection)
+            self.write(json.dumps(BaseHandler.success_ret_with_data(blknumber), default=decimal_default))
         except Exception as e:
             self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
             print("BTC_GetBlockCount error:{0} in {1}".format(e,get_linenumber()))
 
 class BTC_GetBlockHash(BaseHandler):
+    @staticmethod
+    def process(rpcconn,blknumber):
+        commands = [["getblockhash",blknumber]]
+        return rpcconn.batch_(commands)
+
     def get(self):
         btc_rpc_connection = AuthServiceProxy(BTC_RPC_URL)#todo-kojy-20190310
         try:
-            rawdata = self.get_argument("rawdata") if self.get_argument("rawdata") else BTC_GetBlockCount.process(btc_rpc_connection)
-            commands = [["getblockhash"]]
-            data = btc_rpc_connection.batch_(commands)
+            blknumber = self.get_argument("blknumber") if self.get_argument("blknumber") else BTC_GetBlockCount.process(btc_rpc_connection)
+            data = BTC_GetBlockHash.process(btc_rpc_connection,blknumber)
             self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
         except Exception as e:
             self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
             print("BTC_GetBlockHash error:{0} in {1}".format(e,get_linenumber()))
 
-class BTC_GetTransaction(BaseHandler):
+class BTC_DecodeRawTransaction(BaseHandler):
     def post(self):
         btc_rpc_connection = AuthServiceProxy(BTC_RPC_URL)#todo-kojy-20180325
         try:
-            commands = [["gettransaction",self.get_argument("txid")]]
+            commands = [["decoderawtransaction",self.get_argument("rawdata")]]
             data = btc_rpc_connection.batch_(commands)
             self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
         except Exception as e:
@@ -298,8 +364,8 @@ class BTC_GetBlock(BaseHandler):
     def get(self):
         btc_rpc_connection = AuthServiceProxy(BTC_RPC_URL)#todo-kojy-20190310
         try:
-            blkhash = self.get_argument("blkhash") if self.get_argument("rawdata") else BTC_GetBlockCount.process(btc_rpc_connection)
-            commands = [["getblockhash"]]
+            blkhash = self.get_argument("blkhash") if self.get_argument("blkhash") else BTC_GetBlockCount.process(btc_rpc_connection)
+            commands = [["getblock"]]
             data = btc_rpc_connection.batch_(commands)
             self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
         except Exception as e:

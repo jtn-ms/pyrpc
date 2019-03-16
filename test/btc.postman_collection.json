@@ -1,0 +1,351 @@
+{
+	"info": {
+		"_postman_id": "78179b12-5fcf-45ad-83d4-15a2f33a55e9",
+		"name": "btc",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "listaccounts",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:9000/btc/listaccounts?minconf=",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"btc",
+						"listaccounts"
+					],
+					"query": [
+						{
+							"key": "minconf",
+							"value": ""
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sendfrom",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:9000/btc/sendfrom?fromaccount=test&toaddress=2N7eHbUcrKoocbuS9E8RCoNh8QUfevBoWdD&amount=0.01&passphrase=123456",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"btc",
+						"sendfrom"
+					],
+					"query": [
+						{
+							"key": "fromaccount",
+							"value": "test"
+						},
+						{
+							"key": "toaddress",
+							"value": "2N7eHbUcrKoocbuS9E8RCoNh8QUfevBoWdD"
+						},
+						{
+							"key": "amount",
+							"value": "0.01"
+						},
+						{
+							"key": "passphrase",
+							"value": "123456"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getaccountaddress",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:9000/btc/getaccountaddress?account=test2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"btc",
+						"getaccountaddress"
+					],
+					"query": [
+						{
+							"key": "account",
+							"value": "test2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getbalance",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:9000/btc/getbalance?address=2N8jq3e7eBhrrd9d1dMNCvkwtsvN9md2Hmd",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"btc",
+						"getbalance"
+					],
+					"query": [
+						{
+							"key": "address",
+							"value": "2N8jq3e7eBhrrd9d1dMNCvkwtsvN9md2Hmd"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getuxto",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:9000/btc/getunspents?address=2N8jq3e7eBhrrd9d1dMNCvkwtsvN9md2Hmd&minconf=&maxconf=",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"btc",
+						"getunspents"
+					],
+					"query": [
+						{
+							"key": "address",
+							"value": "2N8jq3e7eBhrrd9d1dMNCvkwtsvN9md2Hmd"
+						},
+						{
+							"key": "minconf",
+							"value": ""
+						},
+						{
+							"key": "maxconf",
+							"value": ""
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "createrawtransaction",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:9000/btc/createrawtransaction?from&to&amount=0.02",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"btc",
+						"createrawtransaction"
+					],
+					"query": [
+						{
+							"key": "from",
+							"value": null
+						},
+						{
+							"key": "to",
+							"value": null
+						},
+						{
+							"key": "amount",
+							"value": "0.02"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "signrawtransaction",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:9000/btc/signrawtransaction?rawdata&privkey&address&amount=0.02",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"btc",
+						"signrawtransaction"
+					],
+					"query": [
+						{
+							"key": "rawdata",
+							"value": null
+						},
+						{
+							"key": "privkey",
+							"value": null
+						},
+						{
+							"key": "address",
+							"value": null
+						},
+						{
+							"key": "amount",
+							"value": "0.02"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sendrawtransaction",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:9000/btc/sendrawtransaction?rawdata",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"btc",
+						"sendrawtransaction"
+					],
+					"query": [
+						{
+							"key": "rawdata",
+							"value": null
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "listtransactions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:9000/btc/listtransactions?account&count&skips",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"btc",
+						"listtransactions"
+					],
+					"query": [
+						{
+							"key": "account",
+							"value": null
+						},
+						{
+							"key": "count",
+							"value": null
+						},
+						{
+							"key": "skips",
+							"value": null
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "crawltransactions",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:9000/btc/crawltransactions?blocktime=1552284202",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"btc",
+						"crawltransactions"
+					],
+					"query": [
+						{
+							"key": "blocktime",
+							"value": "1552284202"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

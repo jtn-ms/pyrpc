@@ -238,11 +238,17 @@ class OMNI_CreateRawTransaction(BaseHandler):
 
 class OMNI_ListTransActions(BaseHandler):
     @staticmethod
+    def blknumbers(rpc_connection,account="*",tx_counts=10):
+        commands = [["omni_listtransactions",account,tx_counts]]
+        data = rpc_connection.batch_(commands)
+        return [item['block'] for item in data[0]]
+
+    @staticmethod
     def process(rpc_connection,account="*",tx_counts=10,skips=0):
-        commands = [["listtransactions",account,tx_counts,skips]]
+        commands = [["omni_listtransactions",account,tx_counts,skips]]
         data = rpc_connection.batch_(commands)
         from utils import filtered
-        return [filtered(item,["txid","sendingaddress","referenceaddress","amount","propertyid","blocktime","confirmations"]) for item in data[0]]
+        return [filtered(item,["txid","sendingaddress","referenceaddress","amount","propertyid","blocktime","confirmations","block"]) for item in data[0]]
 
     def get(self):
         omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20180325
@@ -256,17 +262,75 @@ class OMNI_ListTransActions(BaseHandler):
             self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
             print("OMNI_ListTransActions error:{0} in {1}".format(e,get_linenumber()))
 
+class OMNI_CrawlTxData(BaseHandler):
+    @staticmethod
+    def process(rpc_connection,lastscannedblknumber):
+        count = 10
+        while 1:
+            transactions = OMNI_ListTransActions.process(rpc_connection,'*',count)
+            blknumbers = [int(item['block']) for item in transactions]
+            if blknumbers[0] < lastscannedblknumber: return []
+            if lastscannedblknumber in blknumbers: return [transaction for transaction in transactions if int(transaction['block'] >= lastscannedblknumber)]
+            if count > len(blknumbers): return transactions
+            count += 2 * (blknumbers[::-1][0] - lastscannedblknumber)
+
+    def post(self):
+        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20180325
+        try:
+            blknumber = int(self.get_argument("blknumber"))
+            data = OMNI_CrawlTxData.process(omni_rpc_connection,blknumber)
+            self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
+        except Exception as e:
+            self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
+            print("OMNI_ListTransActions error:{0} in {1}".format(e,get_linenumber()))
+
 ####################################################################################################################
 # Else #############################################################################################################
 ####################################################################################################################
 
+class uBTC_GetBlockCount(BaseHandler):
+    def get(self):
+        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20190310
+        try:
+            from btc.handler import BTC_GetBlockCount
+            lastblknumber = BTC_GetBlockCount.process(btc_rpc_connection)
+            self.write(json.dumps(BaseHandler.success_ret_with_data(lastblknumber), default=decimal_default))
+        except Exception as e:
+            self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
+            print("BTC_GetBlockCount error:{0} in {1}".format(e,get_linenumber()))
+
 class OMNI_GetTransaction(BaseHandler):
+    @staticmethod
+    def process(rpc_connection,txid):
+        commands = [["omi_gettransaction",txid]]
+        transaction = rpc_connection.batch_(commands)
+        from utils import filtered
+        return filtered(transaction,["txid","sendingaddress","referenceaddress","amount","propertyid","blocktime","confirmations","block"])
+
     def post(self):
         btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20180325
         try:
-            commands = [["omi_gettransaction",self.get_argument("txid")]]
-            data = btc_rpc_connection.batch_(commands)
+            data = OMNI_GetTransaction.process(btc_rpc_connection,self.get_argument("txid"))
             self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
         except Exception as e:
             self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
-            print("BTC_GetTransaction error:{0} in {1}".format(e,get_linenumber()))    
+            print("BTC_GetTransaction error:{0} in {1}".format(e,get_linenumber()))
+
+class OMNI_ListBlockTransActions(BaseHandler):
+    @staticmethod
+    def process(rpc_connection,blknumber):
+        commands = [["omni_listblocktransactions",blknumber]]
+        txhashes = rpc_connection.batch_(commands)
+        transactions = []
+        for txhash in txhashes:
+            transactions.append(OMNI_GetTransaction.process(rpc_connection,txhash))
+        return transactions
+
+    def post(self):
+        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20180325
+        try:
+            data = OMNI_ListBlockTransActions.process(btc_rpc_connection,self.get_argument("blknumber"))
+            self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
+        except Exception as e:
+            self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
+            print("BTC_GetTransaction error:{0} in {1}".format(e,get_linenumber()))

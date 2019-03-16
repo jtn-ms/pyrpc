@@ -1,0 +1,353 @@
+{
+	"info": {
+		"_postman_id": "38ac7d3e-bb05-46f6-91dc-6235b74cf270",
+		"name": "omni",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "listaccounts",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:9000/usdt/listaccounts?minconf=",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"usdt",
+						"listaccounts"
+					],
+					"query": [
+						{
+							"key": "minconf",
+							"value": ""
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "send",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:9000/usdt/send?fromaddress=mtwEVo8FVJrMcms1GyzhbTUSafwDKvyjsq&toaddress=mzkUX6sZ3bSqK7wk8sZmrR7wUwY3QJQVaE&amount=0.5&passphrase=123456",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"usdt",
+						"send"
+					],
+					"query": [
+						{
+							"key": "fromaddress",
+							"value": "mtwEVo8FVJrMcms1GyzhbTUSafwDKvyjsq"
+						},
+						{
+							"key": "toaddress",
+							"value": "mzkUX6sZ3bSqK7wk8sZmrR7wUwY3QJQVaE"
+						},
+						{
+							"key": "amount",
+							"value": "0.5"
+						},
+						{
+							"key": "passphrase",
+							"value": "123456"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "btc/getbalance",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:9000/usdt/btc/getbalance?address=mzkUX6sZ3bSqK7wk8sZmrR7wUwY3QJQVaE",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"usdt",
+						"btc",
+						"getbalance"
+					],
+					"query": [
+						{
+							"key": "address",
+							"value": "mzkUX6sZ3bSqK7wk8sZmrR7wUwY3QJQVaE"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getbalance",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:9000/usdt/getbalance?address=mtwEVo8FVJrMcms1GyzhbTUSafwDKvyjsq",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"usdt",
+						"getbalance"
+					],
+					"query": [
+						{
+							"key": "address",
+							"value": "mtwEVo8FVJrMcms1GyzhbTUSafwDKvyjsq"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getuxto",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:9000/btc/getunspents?address=2N8jq3e7eBhrrd9d1dMNCvkwtsvN9md2Hmd&minconf=&maxconf=",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"btc",
+						"getunspents"
+					],
+					"query": [
+						{
+							"key": "address",
+							"value": "2N8jq3e7eBhrrd9d1dMNCvkwtsvN9md2Hmd"
+						},
+						{
+							"key": "minconf",
+							"value": ""
+						},
+						{
+							"key": "maxconf",
+							"value": ""
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "createrawtransaction",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:9000/usdt/createrawtransaction?from&to&amount=2",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"usdt",
+						"createrawtransaction"
+					],
+					"query": [
+						{
+							"key": "from",
+							"value": null
+						},
+						{
+							"key": "to",
+							"value": null
+						},
+						{
+							"key": "amount",
+							"value": "2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "signrawtransaction",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:9000/usdt/signrawtransaction?rawdata&privkey&address",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"usdt",
+						"signrawtransaction"
+					],
+					"query": [
+						{
+							"key": "rawdata",
+							"value": null
+						},
+						{
+							"key": "privkey",
+							"value": null
+						},
+						{
+							"key": "address",
+							"value": null
+						},
+						{
+							"key": "amount",
+							"value": "0.000035",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sendrawtransaction",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:9000/btc/sendrawtransaction?rawdata",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"btc",
+						"sendrawtransaction"
+					],
+					"query": [
+						{
+							"key": "rawdata",
+							"value": ""
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "listtransactions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "localhost:9000/usdt/listtransactions?address&count&skips",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"usdt",
+						"listtransactions"
+					],
+					"query": [
+						{
+							"key": "address",
+							"value": null
+						},
+						{
+							"key": "count",
+							"value": null
+						},
+						{
+							"key": "skips",
+							"value": null
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "crawltransactions",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:9000/usdt/crawltransactions?blknumber=1484404",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"usdt",
+						"crawltransactions"
+					],
+					"query": [
+						{
+							"key": "blknumber",
+							"value": "1484404"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

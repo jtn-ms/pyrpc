@@ -3,8 +3,6 @@ Created on Thu Mar 15 14:30:38 2019
 @author: kojy
 """
 
-from constants import BLOCK_TAGS
-
 import decimal
 import sys
 
@@ -35,6 +33,34 @@ def clean_hex(d):
     numbers
     '''
     return hex(d).rstrip('L')
+
+def str2dict(string):
+    json_acceptable_string = string.replace("'", "\"")
+    return json.loads(json_acceptable_string)
+
+"""
+IN: [[{}]]
+OUT:  {}
+IN: [[{},{}]]
+OUT: [{},{}]
+"""
+
+from constants import IP_ADDR, PORT
+
+def list2dict(var):
+    if isinstance(var,dict): return var
+    elif isinstance(var,list):
+        if len(var) == 1: return list2dict(var[0])
+        elif all(isinstance(item,dict) for item in var): return var
+    return {}
+
+import requests
+def post(fname='eth/listaccounts',params={}):
+    return requests.post('http://%s:%d/%s'%(IP_ADDR,PORT,fname),params)
+
+def get(fname='eth/listaccounts',params={}):
+    return requests.get('http://%s:%d/%s'%(IP_ADDR,PORT,fname),params)
+
 ##################################################################
 ## ethereum ######################################################
 ##################################################################
@@ -49,20 +75,17 @@ def validate_block(block):
         block = hex(block)
     return block
 
-
 def wei_to_ether(wei):
     '''
     Convert wei to ether
     '''
     return 1.0 * wei / 10**18
 
-
 def ether_to_wei(ether):
     '''
     Convert ether to wei
     '''
     return ether * 10**18
-
 
 def get_privkey(filename,passwd):
     with open(filename) as f:
@@ -71,6 +94,7 @@ def get_privkey(filename,passwd):
         from ethereum.tools.keys import decode_keystore_json
         from rlp.utils import encode_hex
         return encode_hex(decode_keystore_json(data,passwd))
+        
 """
 $ python utils.py UTC--2019-03-14T08-21-57.582333053Z--a69cbac58e16f007cb553a59651725fed671c335 123
 c9cd37e7d47825219002a06bdb2debcb73d89c15b6a50c1f332d4985a62b2610
