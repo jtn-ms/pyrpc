@@ -50,3 +50,4 @@ def btc_transactions(account='',
 
 if __name__ == "__main__":
     accounts = btc_accounts()
+    print accounts

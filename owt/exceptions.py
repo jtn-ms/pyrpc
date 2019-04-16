@@ -17,7 +17,6 @@ class JsonRpcError(IOError):#Exception):
 
 
 class BadConnectionError(JsonRpcError):
-
     pass
 
 

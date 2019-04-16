@@ -4,7 +4,7 @@
 # MySQL Info ########################################################################################
 #####################################################################################################
 
-SQL_IP_ADDR, SQL_PORT = 'localhost',3306
+SQL_IP_ADDR, SQL_PORT = '192.168.10.155',3306
 SQL_USRNAME = 'root'
 SQL_PASSWD =  'root'
 DBNAME =  'test'
@@ -35,8 +35,14 @@ OMNI_RPC_URL = "http://%s:%s@%s:%d" % (OMNI_RPC_USERNAME, OMNI_RPC_PASSWD,OMNI_I
 
 # Ethereum Family
 ### ETH
-ETH_IP_ADDR = '192.168.10.81'
-ETH_RPC_PORT = 8545
+ETH_IP_ADDR = '192.168.10.199'
+ETH_RPC_PORT = 18545
+### OWT
+OWT_IP_ADDR = '192.168.10.79'
+OWT_RPC_PORT = 8545
+### UP
+UP_IP_ADDR = '192.168.10.155'
+UP_RPC_PORT = 8545
 
 #####################################################################################################
 # default gas price #################################################################################
@@ -45,8 +51,12 @@ ETH_RPC_PORT = 8545
 import sys
 if sys.version[0] > 2:
     ETH_DEFAULT_GAS_PRICE = 50 * 10 ** 9
+    OWT_DEFAULT_GAS_PRICE = 50 * 10 ** 9
+    UP_DEFAULT_GAS_PRICE = 50 * 10 ** 9
 else:
     ETH_DEFAULT_GAS_PRICE = 50000000000L
+    OWT_DEFAULT_GAS_PRICE = 50000000000L
+    UP_DEFAULT_GAS_PRICE = 50000000000L
   
 #####################################################################################################
 # Ethereum###########################################################################################
@@ -60,10 +70,12 @@ BLOCK_TAGS = (
     BLOCK_TAG_PENDING,
 )
 ETH_BLK_BUFFER_SIZE = 30
+OWT_BLK_BUFFER_SIZE = 30
+UP_BLK_BUFFER_SIZE = 30
 #####################################################################################################
 # OMNI ##############################################################################################
 #####################################################################################################
-OMNI_PROPERTY_ID = 2 # Test: 2, Tethere: 31
+OMNI_PROPERTY_ID = 2 # Test: 2, Tether: 31
 OMNI_TRANSACTION_FEE = 0.00006# 0.00000257
 OMNI_TRANSACTION_RECIPIENT_GAIN = 0.00000546
 

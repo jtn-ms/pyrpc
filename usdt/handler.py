@@ -1,7 +1,7 @@
 
 """
 Created on Thu Mar 15 14:30:38 2019
-@author: kojy
+@author: junying
 """
 import json
 from utils import decimal_default,get_linenumber
@@ -15,7 +15,7 @@ from constants import OMNI_RPC_URL,OMNI_PROPERTY_ID,OMNI_TRANSACTION_FEE,OMNI_TR
 
 class uBTC_GetAccountAddress(BaseHandler):
     def get(self):
-        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20180325
+        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20180325
         try:
             commands = [["getaccountaddress",self.get_argument("account")]]
             data = omni_rpc_connection.batch_(commands)
@@ -26,7 +26,7 @@ class uBTC_GetAccountAddress(BaseHandler):
             
 class uBTC_GetNewAddress(BaseHandler):
     def post(self):
-        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20180325
+        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20180325
         try:
             address_type = self.get_argument("address_type") if not self.get_argument("address_type") == "" else "legacy"
             commands = [["getnewaddress",self.get_argument("account"),address_type]]
@@ -38,7 +38,7 @@ class uBTC_GetNewAddress(BaseHandler):
 
 class uBTC_ListAccounts(BaseHandler):    
     def get(self):
-        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20180325
+        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20180325
         data = None
         try:
             minconf = int(self.get_argument("minconf")) if not self.get_argument("minconf") == "" else 0
@@ -51,7 +51,7 @@ class uBTC_ListAccounts(BaseHandler):
 
 class uBTC_ListUTXO(BaseHandler):
     def post(self):
-        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)# todo-kojy-20180325
+        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)# todo-junying-20180325
         try:
             minconf = int(self.get_argument("minconf")) if not self.get_argument("minconf") == "" else 0
             maxconf = int(self.get_argument("maxconf")) if not self.get_argument("maxconf") == "" else 9999999
@@ -65,7 +65,7 @@ class uBTC_ListUTXO(BaseHandler):
 
 class uBTC_GetBalance(BaseHandler):
     def get(self):
-        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20180325
+        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20180325
         try:
             from btc.handler import BTC_ListUTXO
             data = BTC_ListUTXO.utxo(omni_rpc_connection,self.get_argument("address"))
@@ -79,7 +79,7 @@ class uBTC_GetBalance(BaseHandler):
 
 class uBTC_CreateRawTransaction(BaseHandler):
     def post(self):
-        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20190310
+        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20190310
         try:
             from_addr = str(self.get_argument("from")) if self.get_argument("from") else '2N8jq3e7eBhrrd9d1dMNCvkwtsvN9md2Hmd'
             to_addr = str(self.get_argument("to")) if self.get_argument("to") else '2MzrgJmFfHB1mz4QqwuSWePbb183TxHR1wA'
@@ -96,7 +96,7 @@ class uBTC_CreateRawTransaction(BaseHandler):
 
 class uBTC_SignRawTransaction(BaseHandler):
     def post(self):
-        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20190310
+        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20190310
         try:
             rawdata = self.get_argument("rawdata") if self.get_argument("rawdata") else '02000000011d9c5db5afc7b8f9606569a9d470c435764b8dbf372c473d152c0cff1a77f5f10100000000ffffffff024d9083000000000017a914a9f2cc6c49785beabd9eb26d6d4d1f17fd365d308780841e000000000017a914537d68a8c0e4c04262f419a81aed12ffbad148408700000000'
             privkey = self.get_argument("privkey") if self.get_argument("privkey") else 'cTe4efinSJLgj8BYdkvnH27Dd6QCM6eeZYRPb6ifGLzuS8oH1gam'
@@ -114,7 +114,7 @@ class uBTC_SignRawTransaction(BaseHandler):
 
 class uBTC_SendRawTransaction(BaseHandler):
     def post(self):
-        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20190310
+        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20190310
         try:
             commands = [["sendrawtransaction",self.get_argument("rawdata")]]
             data = btc_rpc_connection.batch_(commands)
@@ -129,7 +129,7 @@ class uBTC_SendRawTransaction(BaseHandler):
 
 class OMNI_GetBalance(BaseHandler):
     def get(self):
-        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20190313
+        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20190313
         try:
             commands = [["omni_getbalance", self.get_argument("address"), OMNI_PROPERTY_ID]] # usdt: 31
             data = omni_rpc_connection.batch_(commands)
@@ -140,7 +140,7 @@ class OMNI_GetBalance(BaseHandler):
            
 class OMNI_Send(BaseHandler):
     def post(self):
-        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20180325
+        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20180325
         try:
             from_addr = self.get_argument("fromaddress") if self.get_argument("fromaddress") else 'mtwEVo8FVJrMcms1GyzhbTUSafwDKvyjsq'
             to_addr = self.get_argument("toaddress") if self.get_argument("toaddress") else 'mzkUX6sZ3bSqK7wk8sZmrR7wUwY3QJQVaE'
@@ -191,7 +191,7 @@ class OMNI_CreateRawTransaction(BaseHandler):
         return rsp[0]
 
     def post(self):
-        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20190313
+        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20190313
         try:
             from_addr = self.get_argument("from") if self.get_argument("from") else 'mtwEVo8FVJrMcms1GyzhbTUSafwDKvyjsq'
             to_addr = self.get_argument("to") if self.get_argument("to") else 'mzkUX6sZ3bSqK7wk8sZmrR7wUwY3QJQVaE'
@@ -225,9 +225,9 @@ class OMNI_CreateRawTransaction(BaseHandler):
             param_in = [filtered(item,["txid","vout","scriptPubKey","amount"]) for item in selected]
             from utils import distribute
             param_in = distribute(param_in,'amount','value',aggregate - fee_)
-            rawfinal = OMNI_CreateRawTransaction.omni_createrawtx_change(omni_rpc_connection,rawdata4,param_in,from_addr,fee_)
+            rawhex = OMNI_CreateRawTransaction.omni_createrawtx_change(omni_rpc_connection,rawdata4,param_in,from_addr,fee_)
             # return
-            self.write(json.dumps(BaseHandler.success_ret_with_data(rawfinal), default=decimal_default))
+            self.write(json.dumps(BaseHandler.success_ret_with_data({"hex":rawhex,"utxos":selected}), default=decimal_default))
         except Exception as e:
             self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
             print("OMNI_CreateRawTransaction error:{0} in {1}".format(e,get_linenumber()))
@@ -251,7 +251,7 @@ class OMNI_ListTransActions(BaseHandler):
         return [filtered(item,["txid","sendingaddress","referenceaddress","amount","propertyid","blocktime","confirmations","block"]) for item in data[0]]
 
     def get(self):
-        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20180325
+        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20180325
         try:
             address = self.get_argument("address") if self.get_argument("address") else "*"
             tx_counts = int(self.get_argument("count")) if self.get_argument("count") else 10
@@ -275,7 +275,7 @@ class OMNI_CrawlTxData(BaseHandler):
             count += 2 * (blknumbers[::-1][0] - lastscannedblknumber)
 
     def post(self):
-        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20180325
+        omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20180325
         try:
             blknumber = int(self.get_argument("blknumber"))
             data = OMNI_CrawlTxData.process(omni_rpc_connection,blknumber)
@@ -290,7 +290,7 @@ class OMNI_CrawlTxData(BaseHandler):
 
 class uBTC_GetBlockCount(BaseHandler):
     def get(self):
-        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20190310
+        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20190310
         try:
             from btc.handler import BTC_GetBlockCount
             lastblknumber = BTC_GetBlockCount.process(btc_rpc_connection)
@@ -308,7 +308,7 @@ class OMNI_GetTransaction(BaseHandler):
         return filtered(transaction,["txid","sendingaddress","referenceaddress","amount","propertyid","blocktime","confirmations","block"])
 
     def post(self):
-        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20180325
+        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20180325
         try:
             data = OMNI_GetTransaction.process(btc_rpc_connection,self.get_argument("txid"))
             self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))
@@ -327,7 +327,7 @@ class OMNI_ListBlockTransActions(BaseHandler):
         return transactions
 
     def post(self):
-        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-kojy-20180325
+        btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20180325
         try:
             data = OMNI_ListBlockTransActions.process(btc_rpc_connection,self.get_argument("blknumber"))
             self.write(json.dumps(BaseHandler.success_ret_with_data(data), default=decimal_default))

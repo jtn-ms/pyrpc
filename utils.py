@@ -1,6 +1,6 @@
 """
 Created on Thu Mar 15 14:30:38 2019
-@author: kojy
+@author: junying
 """
 
 import decimal
@@ -139,7 +139,10 @@ def alterkeyname(origin,oldkey,newkey):
     return clone
 
 def calcFee(iInTxCount,iOutTxCount=2):
-    return (148 * iInTxCount + 34 * iOutTxCount + 10) * 0.00000012
+    from decimal import Decimal    
+    from decimal import getcontext
+    getcontext().prec = 8
+    return Decimal(str((148 * iInTxCount + 34 * iOutTxCount + 10))) *  Decimal('0.00000012')
 
 """
 IN:  [{'shape':'rectangle', 'amount':3},{'shape':'circle', 'amount':5},{'shape':'ellipse', 'amount':2}],5
@@ -147,11 +150,13 @@ OUT: [{'shape':'rectangle', 'amount':3},{'shape':'circle', 'amount':5}],8
 """
 def recommended(all,amount):
     selected = []
-    aggregate = 0
-    for utxo in [item for item in all if int(item["confirmations"]) >= 6]:
-        if aggregate > amount: break
+    from decimal import Decimal    
+    aggregate = Decimal('0')
+    for utxo in [item for item in all if int(item["confirmations"]) >= 1]:
+        if aggregate > Decimal(str(amount)): break
         selected.append(utxo)
-        aggregate += float(utxo["amount"])
+        #aggregate += float(utxo["amount"])
+        aggregate += Decimal(str((utxo["amount"])))
     return selected,aggregate
 
 """

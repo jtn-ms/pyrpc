@@ -18,8 +18,26 @@ from eth.handler import ETH_CreateRawTransaction, ETH_SignRawTransaction, ETH_Se
 from eth.handler import ETH_BlockNumber, ETH_GetTransactionFromBlock, ETH_GetBlockTransactionCount, ETH_GetBlockTransactions, ETH_CrawlTxData
 from eth.handler import ETH_GetTransactionByHash,ETH_GetBlockByNumber
 
+from owt.handler import OWT_ListAccounts, OWT_GetBalance, OWT_NewAccount, OWT_SendTransaction
+from owt.handler import OWT_CreateRawTransaction, OWT_SignRawTransaction, OWT_SendRawTransaction
+from owt.handler import OWT_BlockNumber, OWT_GetTransactionFromBlock, OWT_GetBlockTransactionCount, OWT_GetBlockTransactions, OWT_CrawlTxData
+from owt.handler import OWT_GetTransactionByHash,OWT_GetBlockByNumber
+
+from up.handler import UP_ListAccounts, UP_GetBalance, UP_NewAccount, UP_SendTransaction
+from up.handler import UP_BlockNumber, UP_GetTransactionByHash, UP_GetBlockByNumber
+from up.handler import UP_CreateRawTransaction, UP_SignRawTransaction, UP_SendRawTransaction
+from up.handler import UP_BlockNumber, UP_GetTransactionFromBlock, UP_GetBlockTransactionCount, UP_GetBlockTransactions, UP_CrawlTxData
+from up.handler import UP_GetTransactionByHash,UP_GetBlockByNumber
+
+from base_handler import BaseHandler
+
+class MainHandler(BaseHandler):
+    def get(self):
+        self.write("B!tSp@ce Falcon, 2018~")
+
 def make_app():
     application = tornado.web.Application([
+        (r"/", MainHandler),
         (r"/btc/getaccountbalance", BTC_GetAccountBalance),
         (r"/btc/getbalance", BTC_GetBalance),
         (r"/btc/getnewaddress", BTC_GetNewAddress),
@@ -69,6 +87,43 @@ def make_app():
         (r"/eth/gettransactionfromblock", ETH_GetTransactionFromBlock),
         (r"/eth/getransaction", ETH_GetTransactionByHash),
         (r"/eth/getblock", ETH_GetBlockByNumber),
+        ########################################################
+        (r"/owt/listaccounts", OWT_ListAccounts),
+        (r"/owt/newaccount", OWT_NewAccount),
+        (r"/owt/getbalance", OWT_GetBalance),
+        (r"/owt/sendtransaction", OWT_SendTransaction),
+        ############ owt cold wallet ######################
+        (r"/owt/createrawtransaction", OWT_CreateRawTransaction),
+        (r"/owt/signrawtransaction", OWT_SignRawTransaction),
+        (r"/owt/sendrawtransaction", OWT_SendRawTransaction),
+        ############ owt timer ############################
+        (r"/owt/crawltransactions", OWT_CrawlTxData),
+        (r"/owt/gettransactions", OWT_GetBlockTransactions),
+        (r"/owt/blocknumber", OWT_BlockNumber),
+        (r"/owt/blocktransactioncount", OWT_GetBlockTransactionCount),
+        (r"/owt/gettransactionfromblock", OWT_GetTransactionFromBlock),
+        (r"/owt/getransaction", OWT_GetTransactionByHash),
+        (r"/owt/getblock", OWT_GetBlockByNumber),
+        ########################################################
+        (r"/up/listaccounts", UP_ListAccounts),
+        (r"/up/newaccount", UP_NewAccount),
+        (r"/up/getbalance", UP_GetBalance),
+        (r"/up/sendtransaction", UP_SendTransaction),
+        (r"/up/getblock", UP_GetBlockByNumber),
+        (r"/up/blocknumber", UP_BlockNumber),
+        (r"/up/getransaction", UP_GetTransactionByHash),
+        ############ up cold wallet ######################
+        (r"/up/createrawtransaction", UP_CreateRawTransaction),
+        (r"/up/signrawtransaction", UP_SignRawTransaction),
+        (r"/up/sendrawtransaction", UP_SendRawTransaction),
+        ############ up timer ############################
+        (r"/up/crawltransactions", UP_CrawlTxData),
+        (r"/up/gettransactions", UP_GetBlockTransactions),
+        (r"/up/blocknumber", UP_BlockNumber),
+        (r"/up/blocktransactioncount", UP_GetBlockTransactionCount),
+        (r"/up/gettransactionfromblock", UP_GetTransactionFromBlock),
+        (r"/up/getransaction", UP_GetTransactionByHash),
+        (r"/up/getblock", UP_GetBlockByNumber),
     ], debug = True
     )
     return application

@@ -18,17 +18,16 @@ from ethereum.abi import encode_abi, decode_abi
 import ethereum.utils as utils
 from utils import hex_to_dec, clean_hex, validate_block
 
-from constants import BLOCK_TAGS, BLOCK_TAG_LATEST,ETH_RPC_PORT
-from exceptions import BadConnectionError, BadJsonError, BadResponseError, BadStatusCodeError
+from constants import BLOCK_TAGS, BLOCK_TAG_LATEST,OWT_RPC_PORT
 
-GETH_DEFAULT_RPC_PORT = ETH_RPC_PORT
-ETH_DEFAULT_RPC_PORT = ETH_RPC_PORT
-PARITY_DEFAULT_RPC_PORT = ETH_RPC_PORT
-PYETHAPP_DEFAULT_RPC_PORT = 4000
+GOWT_DEFAULT_RPC_PORT = OWT_RPC_PORT
+OWT_DEFAULT_RPC_PORT = OWT_RPC_PORT
+PARITY_DEFAULT_RPC_PORT = OWT_RPC_PORT
+PYOWTAPP_DEFAULT_RPC_PORT = 4000
 MAX_RETRIES = 3
 JSON_MEDIA_TYPE = 'application/json'
 
-class EthereumProxy(object):
+class OrientWaltProxy(object):
     '''
     Ethereum JSON-RPC client class
     '''
@@ -36,7 +35,7 @@ class EthereumProxy(object):
     DEFAULT_GAS_PER_TX = 90000
     DEFAULT_GAS_PRICE = 50 * 10**9  # 50 gwei
 
-    def __init__(self, host='localhost', port=GETH_DEFAULT_RPC_PORT, tls=False):
+    def __init__(self, host='localhost', port=GOWT_DEFAULT_RPC_PORT, tls=False):
         self.host = host
         self.port = port
         self.tls = tls
@@ -61,17 +60,17 @@ class EthereumProxy(object):
         try:
             r = self.session.post(url, headers=headers, data=json.dumps(data))
         except RequestsConnectionError:
-            raise BadConnectionError("request ethereum node failed, please contact system administrator to check node server.") #fixed bug, 2019-04-13 yqq
+            pass#raise BadConnectionError
         if r.status_code / 100 != 2:
-            raise BadStatusCodeError(r.status_code)
+            pass#raise BadStatusCodeError(r.status_code)
         try:
             response = r.json()
         except ValueError:
-            raise BadJsonError("json error:" + str(r.text))
+            pass#raise BadJsonError(r.text)
         try:
             return response['result']
         except KeyError:
-            raise BadResponseError(response)
+            pass#raise BadResponseError(response)
 
     def _encode_function(self, signature, param_values):
 
@@ -95,25 +94,25 @@ class EthereumProxy(object):
         '''
         Send wei from one address to another
         '''
-        return self.eth_sendTransaction(from_address=from_, to_address=to, value=amount)
+        return self.owt_sendTransaction(from_address=from_, to_address=to, value=amount)
 
     def create_contract(self, from_, code, gas, sig=None, args=None):
         '''
         Create a contract on the blockchain from compiled EVM code. Returns the
         transaction hash.
         '''
-        from_ = from_ or self.eth_coinbase()
+        from_ = from_ or self.owt_coinbase()
         if sig is not None and args is not None:
              types = sig[sig.find('(') + 1: sig.find(')')].split(',')
              encoded_params = encode_abi(types, args)
              code += encoded_params.encode('hex')
-        return self.eth_sendTransaction(from_address=from_, gas=gas, data=code)
+        return self.owt_sendTransaction(from_address=from_, gas=gas, data=code)
 
     def get_contract_address(self, tx):
         '''
         Get the address for a contract from the transaction that created it
         '''
-        receipt = self.eth_getTransactionReceipt(tx)
+        receipt = self.owt_getTransactionReceipt(tx)
         return receipt['contractAddress']
 
     def call(self, address, sig, args, result_types):
@@ -123,7 +122,7 @@ class EthereumProxy(object):
         '''
         data = self._encode_function(sig, args)
         data_hex = data.encode('hex')
-        response = self.eth_call(to_address=address, data=data_hex)
+        response = self.owt_call(to_address=address, data=data_hex)
         return decode_abi(result_types, response[2:].decode('hex'))
 
     def call_with_transaction(self, from_, address, sig, args, gas=None, gas_price=None, value=None):
@@ -135,7 +134,7 @@ class EthereumProxy(object):
         gas_price = gas_price or self.DEFAULT_GAS_PRICE
         data = self._encode_function(sig, args)
         data_hex = data.encode('hex')
-        return self.eth_sendTransaction(from_address=from_, to_address=address, data=data_hex, gas=gas,
+        return self.owt_sendTransaction(from_address=from_, to_address=address, data=data_hex, gas=gas,
                                         gas_price=gas_price, value=value)
 
 ################################################################################
@@ -183,160 +182,160 @@ class EthereumProxy(object):
         '''
         return hex_to_dec(self._call('net_peerCount'))
 
-    def eth_protocolVersion(self):
+    def owt_protocolVersion(self):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_protocolversion
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_protocolversion
 
         TESTED
         '''
-        return self._call('eth_protocolVersion')
+        return self._call('owt_protocolVersion')
 
-    def eth_syncing(self):
+    def owt_syncing(self):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_syncing
-
-        TESTED
-        '''
-        return self._call('eth_syncing')
-
-    def eth_coinbase(self):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_coinbase
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_syncing
 
         TESTED
         '''
-        return self._call('eth_coinbase')
+        return self._call('owt_syncing')
 
-    def eth_mining(self):
+    def owt_coinbase(self):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_mining
-
-        TESTED
-        '''
-        return self._call('eth_mining')
-
-    def eth_hashrate(self):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_hashrate
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_coinbase
 
         TESTED
         '''
-        return hex_to_dec(self._call('eth_hashrate'))
+        return self._call('owt_coinbase')
 
-    def eth_gasPrice(self):
+    def owt_mining(self):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gasprice
-
-        TESTED
-        '''
-        return hex_to_dec(self._call('eth_gasPrice'))
-
-    def eth_accounts(self):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_accounts
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_mining
 
         TESTED
         '''
-        return self._call('eth_accounts')
+        return self._call('owt_mining')
 
-    def eth_blockNumber(self):
+    def owt_hashrate(self):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_blocknumber
-
-        TESTED
-        '''
-        return hex_to_dec(self._call('eth_blockNumber'))
-
-    def eth_getBalance(self, address=None, block=BLOCK_TAG_LATEST):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getbalance
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_hashrate
 
         TESTED
         '''
-        address = address or self.eth_coinbase()
+        return hex_to_dec(self._call('owt_hashrate'))
+
+    def owt_gasPrice(self):
+        '''
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_gasprice
+
+        TESTED
+        '''
+        return hex_to_dec(self._call('owt_gasPrice'))
+
+    def owt_accounts(self):
+        '''
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_accounts
+
+        TESTED
+        '''
+        return self._call('owt_accounts')
+
+    def owt_blockNumber(self):
+        '''
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_blocknumber
+
+        TESTED
+        '''
+        return hex_to_dec(self._call('owt_blockNumber'))
+
+    def owt_getBalance(self, address=None, block=BLOCK_TAG_LATEST):
+        '''
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getbalance
+
+        TESTED
+        '''
+        address = address or self.owt_coinbase()
         block = validate_block(block)
-        return hex_to_dec(self._call('eth_getBalance', [address, block]))
+        return hex_to_dec(self._call('owt_getBalance', [address, block]))
 
-    def eth_getStorageAt(self, address=None, position=0, block=BLOCK_TAG_LATEST):
+    def owt_getStorageAt(self, address=None, position=0, block=BLOCK_TAG_LATEST):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getstorageat
-
-        TESTED
-        '''
-        block = validate_block(block)
-        return self._call('eth_getStorageAt', [address, hex(position), block])
-
-    def eth_getTransactionCount(self, address, block=BLOCK_TAG_LATEST):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactioncount
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getstorageat
 
         TESTED
         '''
         block = validate_block(block)
-        return hex_to_dec(self._call('eth_getTransactionCount', [address, block]))
+        return self._call('owt_getStorageAt', [address, hex(position), block])
 
-    def eth_getBlockTransactionCountByHash(self, block_hash):
+    def owt_getTransactionCount(self, address, block=BLOCK_TAG_LATEST):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblocktransactioncountbyhash
-
-        TESTED
-        '''
-        return hex_to_dec(self._call('eth_getBlockTransactionCountByHash', [block_hash]))
-
-    def eth_getBlockTransactionCountByNumber(self, block=BLOCK_TAG_LATEST):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblocktransactioncountbynumber
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_gettransactioncount
 
         TESTED
         '''
         block = validate_block(block)
-        return hex_to_dec(self._call('eth_getBlockTransactionCountByNumber', [block]))
+        return hex_to_dec(self._call('owt_getTransactionCount', [address, block]))
 
-    def eth_getUncleCountByBlockHash(self, block_hash):
+    def owt_getBlockTransactionCountByHash(self, block_hash):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getunclecountbyblockhash
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getblocktransactioncountbyhash
 
         TESTED
         '''
-        return hex_to_dec(self._call('eth_getUncleCountByBlockHash', [block_hash]))
+        return hex_to_dec(self._call('owt_getBlockTransactionCountByHash', [block_hash]))
 
-    def eth_getUncleCountByBlockNumber(self, block=BLOCK_TAG_LATEST):
+    def owt_getBlockTransactionCountByNumber(self, block=BLOCK_TAG_LATEST):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getunclecountbyblocknumber
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getblocktransactioncountbynumber
 
         TESTED
         '''
         block = validate_block(block)
-        return hex_to_dec(self._call('eth_getUncleCountByBlockNumber', [block]))
+        return hex_to_dec(self._call('owt_getBlockTransactionCountByNumber', [block]))
 
-    def eth_getCode(self, address, default_block=BLOCK_TAG_LATEST):
+    def owt_getUncleCountByBlockHash(self, block_hash):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getcode
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getunclecountbyblockhash
+
+        TESTED
+        '''
+        return hex_to_dec(self._call('owt_getUncleCountByBlockHash', [block_hash]))
+
+    def owt_getUncleCountByBlockNumber(self, block=BLOCK_TAG_LATEST):
+        '''
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getunclecountbyblocknumber
+
+        TESTED
+        '''
+        block = validate_block(block)
+        return hex_to_dec(self._call('owt_getUncleCountByBlockNumber', [block]))
+
+    def owt_getCode(self, address, default_block=BLOCK_TAG_LATEST):
+        '''
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getcode
 
         NEEDS TESTING
         '''
         if isinstance(default_block, basestring):
             if default_block not in BLOCK_TAGS:
                 raise ValueError
-        return self._call('eth_getCode', [address, default_block])
+        return self._call('owt_getCode', [address, default_block])
 
-    def eth_sign(self, address, data):
+    def owt_sign(self, address, data):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_sign
 
         NEEDS TESTING
         '''
-        return self._call('eth_sign', [address, data])
+        return self._call('owt_sign', [address, data])
 
-    def eth_sendTransaction(self, to_address=None, from_address=None, gas=None, gas_price=None, value=None, data=None,
+    def owt_sendTransaction(self, to_address=None, from_address=None, gas=None, gas_price=None, value=None, data=None,
                             nonce=None):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sendtransaction
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_sendtransaction
 
         NEEDS TESTING
         '''
         params = {}
-        params['from'] = from_address or self.eth_coinbase()
+        params['from'] = from_address or self.owt_coinbase()
         if to_address is not None:
             params['to'] = to_address
         if gas is not None:
@@ -349,20 +348,20 @@ class EthereumProxy(object):
             params['data'] = data
         if nonce is not None:
             params['nonce'] = clean_hex(nonce)
-        return self._call('eth_sendTransaction', [params])
+        return self._call('owt_sendTransaction', [params])
 
-    def eth_sendRawTransaction(self, data):
+    def owt_sendRawTransaction(self, data):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sendrawtransaction
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_sendrawtransaction
 
         NEEDS TESTING
         '''
-        return self._call('eth_sendRawTransaction', [data])
+        return self._call('owt_sendRawTransaction', [data])
 
-    def eth_call(self, to_address, from_address=None, gas=None, gas_price=None, value=None, data=None,
+    def owt_call(self, to_address, from_address=None, gas=None, gas_price=None, value=None, data=None,
                  default_block=BLOCK_TAG_LATEST):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_call
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_call
 
         NEEDS TESTING
         '''
@@ -381,12 +380,12 @@ class EthereumProxy(object):
             obj['value'] = value
         if data is not None:
             obj['data'] = data
-        return self._call('eth_call', [obj, default_block])
+        return self._call('owt_call', [obj, default_block])
 
-    def eth_estimateGas(self, to_address=None, from_address=None, gas=None, gas_price=None, value=None, data=None,
+    def owt_estimateGas(self, to_address=None, from_address=None, gas=None, gas_price=None, value=None, data=None,
                         default_block=BLOCK_TAG_LATEST):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_estimategas
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_estimategas
 
         NEEDS TESTING
         '''
@@ -406,110 +405,110 @@ class EthereumProxy(object):
             obj['value'] = value
         if data is not None:
             obj['data'] = data
-        return hex_to_dec(self._call('eth_estimateGas', [obj, default_block]))
+        return hex_to_dec(self._call('owt_estimateGas', [obj, default_block]))
 
-    def eth_getBlockByHash(self, block_hash, tx_objects=True):
+    def owt_getBlockByHash(self, block_hash, tx_objects=True):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbyhash
-
-        TESTED
-        '''
-        return self._call('eth_getBlockByHash', [block_hash, tx_objects])
-
-    def eth_getBlockByNumber(self, block=BLOCK_TAG_LATEST, tx_objects=True):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbynumber
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getblockbyhash
 
         TESTED
         '''
-        block = validate_block(block)
-        return self._call('eth_getBlockByNumber', [block, tx_objects])
+        return self._call('owt_getBlockByHash', [block_hash, tx_objects])
 
-    def eth_getTransactionByHash(self, tx_hash):
+    def owt_getBlockByNumber(self, block=BLOCK_TAG_LATEST, tx_objects=True):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactionbyhash
-
-        TESTED
-        '''
-        return self._call('eth_getTransactionByHash', [tx_hash])
-
-    def eth_getTransactionByBlockHashAndIndex(self, block_hash, index=0):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactionbyblockhashandindex
-
-        TESTED
-        '''
-        return self._call('eth_getTransactionByBlockHashAndIndex', [block_hash, hex(index)])
-
-    def eth_getTransactionByBlockNumberAndIndex(self, block=BLOCK_TAG_LATEST, index=0):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactionbyblocknumberandindex
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getblockbynumber
 
         TESTED
         '''
         block = validate_block(block)
-        return self._call('eth_getTransactionByBlockNumberAndIndex', [block, hex(index)])
+        return self._call('owt_getBlockByNumber', [block, tx_objects])
 
-    def eth_getTransactionReceipt(self, tx_hash):
+    def owt_getTransactionByHash(self, tx_hash):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_gettransactionreceipt
-
-        TESTED
-        '''
-        return self._call('eth_getTransactionReceipt', [tx_hash])
-
-    def eth_getUncleByBlockHashAndIndex(self, block_hash, index=0):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getunclebyblockhashandindex
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_gettransactionbyhash
 
         TESTED
         '''
-        return self._call('eth_getUncleByBlockHashAndIndex', [block_hash, hex(index)])
+        return self._call('owt_getTransactionByHash', [tx_hash])
 
-    def eth_getUncleByBlockNumberAndIndex(self, block=BLOCK_TAG_LATEST, index=0):
+    def owt_getTransactionByBlockHashAndIndex(self, block_hash, index=0):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getunclebyblocknumberandindex
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_gettransactionbyblockhashandindex
+
+        TESTED
+        '''
+        return self._call('owt_getTransactionByBlockHashAndIndex', [block_hash, hex(index)])
+
+    def owt_getTransactionByBlockNumberAndIndex(self, block=BLOCK_TAG_LATEST, index=0):
+        '''
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_gettransactionbyblocknumberandindex
 
         TESTED
         '''
         block = validate_block(block)
-        return self._call('eth_getUncleByBlockNumberAndIndex', [block, hex(index)])
+        return self._call('owt_getTransactionByBlockNumberAndIndex', [block, hex(index)])
 
-    def eth_getCompilers(self):
+    def owt_getTransactionReceipt(self, tx_hash):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getcompilers
-
-        TESTED
-        '''
-        return self._call('eth_getCompilers')
-
-    def eth_compileSolidity(self, code):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_compilesolidity
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_gettransactionreceipt
 
         TESTED
         '''
-        return self._call('eth_compileSolidity', [code])
+        return self._call('owt_getTransactionReceipt', [tx_hash])
 
-    def eth_compileLLL(self, code):
+    def owt_getUncleByBlockHashAndIndex(self, block_hash, index=0):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_compilelll
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getunclebyblockhashandindex
+
+        TESTED
+        '''
+        return self._call('owt_getUncleByBlockHashAndIndex', [block_hash, hex(index)])
+
+    def owt_getUncleByBlockNumberAndIndex(self, block=BLOCK_TAG_LATEST, index=0):
+        '''
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getunclebyblocknumberandindex
+
+        TESTED
+        '''
+        block = validate_block(block)
+        return self._call('owt_getUncleByBlockNumberAndIndex', [block, hex(index)])
+
+    def owt_getCompilers(self):
+        '''
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getcompilers
+
+        TESTED
+        '''
+        return self._call('owt_getCompilers')
+
+    def owt_compileSolidity(self, code):
+        '''
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_compilesolidity
+
+        TESTED
+        '''
+        return self._call('owt_compileSolidity', [code])
+
+    def owt_compileLLL(self, code):
+        '''
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_compilelll
 
         N/A
         '''
-        return self._call('eth_compileLLL', [code])
+        return self._call('owt_compileLLL', [code])
 
-    def eth_compileSerpent(self, code):
+    def owt_compileSerpent(self, code):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_compileserpent
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_compileserpent
 
         N/A
         '''
-        return self._call('eth_compileSerpent', [code])
+        return self._call('owt_compileSerpent', [code])
 
-    def eth_newFilter(self, from_block=BLOCK_TAG_LATEST, to_block=BLOCK_TAG_LATEST, address=None, topics=None):
+    def owt_newFilter(self, from_block=BLOCK_TAG_LATEST, to_block=BLOCK_TAG_LATEST, address=None, topics=None):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newfilter
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_newfilter
 
         NEEDS TESTING
         '''
@@ -519,82 +518,82 @@ class EthereumProxy(object):
             'address':   address,
             'topics':    topics,
         }
-        return self._call('eth_newFilter', [_filter])
+        return self._call('owt_newFilter', [_filter])
 
-    def eth_newBlockFilter(self):
+    def owt_newBlockFilter(self):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newblockfilter
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_newblockfilter
 
         TESTED
         '''
-        return self._call('eth_newBlockFilter')
+        return self._call('owt_newBlockFilter')
 
-    def eth_newPendingTransactionFilter(self):
+    def owt_newPendingTransactionFilter(self):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newpendingtransactionfilter
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_newpendingtransactionfilter
 
         TESTED
         '''
-        return hex_to_dec(self._call('eth_newPendingTransactionFilter'))
+        return hex_to_dec(self._call('owt_newPendingTransactionFilter'))
 
-    def eth_pendingTransactions(self):
-        return self._call('eth_pendingTransactions')
+    def owt_pendingTransactions(self):
+        return self._call('owt_pendingTransactions')
     
-    def eth_uninstallFilter(self, filter_id):
+    def owt_uninstallFilter(self, filter_id):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_uninstallfilter
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_uninstallfilter
 
         NEEDS TESTING
         '''
-        return self._call('eth_uninstallFilter', [filter_id])
+        return self._call('owt_uninstallFilter', [filter_id])
 
-    def eth_getFilterChanges(self, filter_id):
+    def owt_getFilterChanges(self, filter_id):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getfilterchanges
-
-        NEEDS TESTING
-        '''
-        return self._call('eth_getFilterChanges', [filter_id])
-
-    def eth_getFilterLogs(self, filter_id):
-        '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getfilterlogs
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getfilterchanges
 
         NEEDS TESTING
         '''
-        return self._call('eth_getFilterLogs', [filter_id])
+        return self._call('owt_getFilterChanges', [filter_id])
 
-    def eth_getLogs(self, filter_object):
+    def owt_getFilterLogs(self, filter_id):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getlogs
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getfilterlogs
 
         NEEDS TESTING
         '''
-        return self._call('eth_getLogs', [filter_object])
+        return self._call('owt_getFilterLogs', [filter_id])
 
-    def eth_getWork(self):
+    def owt_getLogs(self, filter_object):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getwork
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getlogs
+
+        NEEDS TESTING
+        '''
+        return self._call('owt_getLogs', [filter_object])
+
+    def owt_getWork(self):
+        '''
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_getwork
 
         TESTED
         '''
-        return self._call('eth_getWork')
+        return self._call('owt_getWork')
 
-    def eth_submitWork(self, nonce, header, mix_digest):
+    def owt_submitWork(self, nonce, header, mix_digest):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_submitwork
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_submitwork
 
         NEEDS TESTING
         '''
-        return self._call('eth_submitWork', [nonce, header, mix_digest])
+        return self._call('owt_submitWork', [nonce, header, mix_digest])
 
-    def eth_submitHashrate(self, hash_rate, client_id):
+    def owt_submitHashrate(self, hash_rate, client_id):
         '''
-        https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_submithashrate
+        https://github.com/ethereum/wiki/wiki/JSON-RPC#owt_submithashrate
 
         TESTED
         '''
-        return self._call('eth_submitHashrate', [hex(hash_rate), client_id])
+        return self._call('owt_submitHashrate', [hex(hash_rate), client_id])
 
     def db_putString(self, db_name, key, value):
         '''
@@ -733,13 +732,13 @@ class EthereumProxy(object):
         return self._call('shh_getMessages', [filter_id])
 
 
-class ParityEthJsonRpc(EthereumProxy):
+class ParityEthJsonRpc(OrientWaltProxy):
     '''
     EthJsonRpc subclass for Parity-specific methods
     '''
 
     def __init__(self, host='localhost', port=PARITY_DEFAULT_RPC_PORT, tls=False):
-        EthereumProxy.__init__(self, host=host, port=port, tls=tls)
+        OrientWaltProxy.__init__(self, host=host, port=port, tls=tls)
 
     def trace_filter(self, from_block=None, to_block=None, from_addresses=None, to_addresses=None):
         '''
