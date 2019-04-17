@@ -18,10 +18,17 @@ stop: clean
 clean:
 	@find . -name nohup.out -exec rm -f {} \;
 	@find . -regex ".*\.\(pyc\)" | xargs rm
+	@rm -rf test/__pycache__
+	@find . -name .cache -exec rm -rf {} \;
 	
 check:
 	@ps axu | grep server.py
 
+pytest:
+	@py.test
+
+zip:
+	@tar cvf ../rpc.tar.gz ../rpc
 # auto generate
 autogen: genowt genup
 

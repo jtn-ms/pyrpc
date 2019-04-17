@@ -241,11 +241,11 @@ class OMNI_ListTransActions(BaseHandler):
     def blknumbers(rpc_connection,account="*",tx_counts=10):
         commands = [["omni_listtransactions",account,tx_counts]]
         data = rpc_connection.batch_(commands)
-        return [item['block'] for item in data[0]]
+        return [item['block'] for item in data[0] if "block" in item]
 
     @staticmethod
-    def process(rpc_connection,account="*",tx_counts=10,skips=0):
-        commands = [["omni_listtransactions",account,tx_counts,skips]]
+    def process(rpc_connection,account="*",tx_counts=10,skips=0,include_watchonly=True):
+        commands = [["omni_listtransactions",account,tx_counts,skips,include_watchonly]]
         data = rpc_connection.batch_(commands)
         from utils import filtered
         return [filtered(item,["txid","sendingaddress","referenceaddress","amount","propertyid","blocktime","confirmations","block"]) for item in data[0]]
@@ -268,8 +268,8 @@ class OMNI_CrawlTxData(BaseHandler):
         count = 10
         while 1:
             transactions = OMNI_ListTransActions.process(rpc_connection,'*',count)
-            blknumbers = [int(item['block']) for item in transactions]
-            if blknumbers[0] < lastscannedblknumber: return []
+            blknumbers = [int(item['block']) for item in transactions if 'block' in item.keys()]
+            if len(blknumbers) == 0 or blknumbers[0] < lastscannedblknumber: return []
             if lastscannedblknumber in blknumbers: return [transaction for transaction in transactions if int(transaction['block'] >= lastscannedblknumber)]
             if count > len(blknumbers): return transactions
             count += 2 * (blknumbers[::-1][0] - lastscannedblknumber)

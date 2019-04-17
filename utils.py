@@ -217,10 +217,14 @@ def decode(data):
     decoded = decode_hex(data)
     return json.loads(decoded)
 
-def test_encode():
-    testdata = [{'txid':'123456789','amount':0.233}]
-    encoded = encode(testdata)
-    assert decode(encoded) == testdata
+"""
+IN: '{"foo":"bar", "foo2":"bar2"}'
+OUT: {'foo': 'bar', 'foo2': 'bar2'}
+"""
+def str2dict(str):
+    import yaml
+    return yaml.load(str)
+
 
 if __name__ == "__main__":
     test_get_privkey()

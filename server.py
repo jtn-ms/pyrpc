@@ -7,6 +7,7 @@ from btc.handler import BTC_GetBalance, BTC_GetAccountBalance, BTC_ListAccounts
 from btc.handler import BTC_SendFrom
 from btc.handler import BTC_ListUTXO, BTC_CreateRawTransaction, BTC_SignRawTransaction, BTC_SendRawTransaction
 from btc.handler import BTC_GetRawTransaction, BTC_ListTransActions, BTC_CrawlTxData
+from btc.handler import BTC_CreateRawTransactionEx,BTC_SignRawTransactionEx
 
 from usdt.handler import uBTC_GetAccountAddress,uBTC_GetNewAddress
 from usdt.handler import uBTC_GetBalance, uBTC_ListUTXO, uBTC_ListAccounts, OMNI_GetBalance, OMNI_Send
@@ -48,7 +49,9 @@ def make_app():
         (r"/btc/getunspents", BTC_ListUTXO),
         ############ bitcoin cold wallet #######################
         (r"/btc/createrawtransaction", BTC_CreateRawTransaction),
+        (r"/btc/createrawtransactionex", BTC_CreateRawTransactionEx),
         (r"/btc/signrawtransaction", BTC_SignRawTransaction),
+        (r"/btc/signrawtransactionex", BTC_SignRawTransactionEx),
         (r"/btc/sendrawtransaction", BTC_SendRawTransaction),
         ############ bitcoin timer #############################
         (r"/btc/listtransactions", BTC_ListTransActions),
