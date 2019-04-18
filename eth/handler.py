@@ -23,7 +23,6 @@ class ETH_GetBalance(BaseHandler):
     @staticmethod
     def get_balance(rpc_connection,addr):
         balance = rpc_connection.eth_getBalance(addr)
-        print balance
         return balance/float(10**18)
 
     def get(self):
@@ -86,9 +85,7 @@ class ETH_SendTransaction(BaseHandler):
     @staticmethod
     def unlockAccount(rpc_connection,address,passphrase):
         rsp = rpc_connection.personal_unlockAccount(address,passphrase)
-        if not rsp:
-            err_msg = "unlock failed"
-            return False,err_msg
+        if not rsp: err_msg = "unlock failed"; return False,err_msg
         return True, rsp
 
     def post(self):
@@ -106,19 +103,13 @@ class ETH_SendTransaction(BaseHandler):
             _value = str_to_decimal(value) * 10 ** 18
             # checking balance
             ret, err_msg = ETH_SendTransaction.checkBalance(rpc_connection,from_addr,_value,_gas,_gas_price)
-            if not ret:
-                self.write(json.dumps(BaseHandler.error_ret_with_data(err_msg)))
-                return
+            if not ret: self.write(json.dumps(BaseHandler.error_ret_with_data(err_msg))); return
             # unlocking account
             ret, err_msg = ETH_SendTransaction.unlockAccount(rpc_connection,from_addr,passphrase)
-            if not ret:
-                self.write(json.dumps(BaseHandler.error_ret_with_data(err_msg)))
-                return
+            if not ret: self.write(json.dumps(BaseHandler.error_ret_with_data(err_msg))); return
             # sending money
             rsp = rpc_connection.eth_sendTransaction(to_addr,from_addr,_gas,_gas_price,_value)
-            if not rsp:
-                self.write(json.dumps(BaseHandler.error_ret_with_data('transaction failed')))
-                return 
+            if not rsp: self.write(json.dumps(BaseHandler.error_ret_with_data('transaction failed'))); return 
             self.write(json.dumps(BaseHandler.success_ret_with_data(rsp), default=decimal_default))
         except Exception as e:
             self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
@@ -137,7 +128,6 @@ def createRawTransaction(nonce, gasprice, startgas, to, value, data):
     from rlp.utils import encode_hex,decode_hex
     to_ = decode_hex(to[2:]) if isinstance(to,str) and '0x' in to else decode_hex(to)
     data_ = decode_hex(data)
-    print("data=" + data_)
     rawTransaction = TransactionEx(nonce_, gasprice_, startgas_, to_, value_, data_)
     rlp_data = rawTransaction.unsigned
     return encode_hex(rlp_data)
@@ -157,7 +147,7 @@ class ETH_CreateRawTransaction(BaseHandler):
         rpc_connection = EthereumProxy(ip_addr, port)
         try:
             """
-            to_addr = str(self.get_argument("to")) if self.get_argument("to") else '0xba1099cc91acdf45771d0a0c6e3b80e8e880c684'
+            to_addr = str(self.get_argument("to")) if self.get_argument("to") else '0x838c1fc803d79ddbd1e7de5e8ee0463899ff61a8'
             startgas = 4#str(self.get_argument("startgas")) if self.get_argument("startgas") else default_gas #21000
             gas_price = 3#str(self.get_argument("gasPrice")) if self.get_argument("gasPrice") else default_gasprice #50000000000L
             value = float(self.get_argument("value"))  if self.get_argument("value") else 0.1
@@ -165,7 +155,7 @@ class ETH_CreateRawTransaction(BaseHandler):
             data = '01' #str(self.get_argument("data"))
             value_ = 2 #100000000000000000 #int(value * 10 ** 18)
             """
-            to_addr = str(self.get_argument("to")) if self.get_argument("to") else '0xba1099cc91acdf45771d0a0c6e3b80e8e880c684'
+            to_addr = str(self.get_argument("to")) if self.get_argument("to") else '0x838c1fc803d79ddbd1e7de5e8ee0463899ff61a8'
             startgas = str(self.get_argument("startgas")) if self.get_argument("startgas") else default_gas #21000
             gas_price = str(self.get_argument("gasPrice")) if self.get_argument("gasPrice") else default_gasprice #50000000000L
             value = float(self.get_argument("value"))  if self.get_argument("value") else 0.1
@@ -185,10 +175,10 @@ class ETH_SignRawTransaction(BaseHandler):
     def post(self):
         rpc_connection = EthereumProxy(ip_addr, port)
         try:
-            key = str(self.get_argument('key')) if self.get_argument('key') else '1be48a93cb149ea2cbc3e85db6056c83a37a1d7aafcee079c266dd05af2e7c31'
-            data = str(self.get_argument("data")) if self.get_argument("data") else 'e980850ba43b740082520894ba1099cc91acdf45771d0a0c6e3b80e8e880c68488016345785d8a000080'
+            privkey = str(self.get_argument('privkey')) if self.get_argument('privkey') else 'e148bd556b2a43fe8b949fb353c2adba46c8f479b8b0eaafb904085874686f6c'
+            data = str(self.get_argument("data")) if self.get_argument("data") else 'e980850ba43b740082520894838c1fc803d79ddbd1e7de5e8ee0463899ff61a888016345785d8a000080'
             # sending raw transaction
-            encoded = signRawTransaction(key,data)
+            encoded = signRawTransaction(privkey,data)
             self.write(json.dumps(BaseHandler.success_ret_with_data(encoded), default=decimal_default))
         except Exception as e:
             self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
@@ -198,7 +188,7 @@ class ETH_SendRawTransaction(BaseHandler):
     def post(self):
         rpc_connection = EthereumProxy(ip_addr, port)
         try:
-            data = str(self.get_argument("data")) if self.get_argument("data") else '0xf86c80850ba43b740082520894ba1099cc91acdf45771d0a0c6e3b80e8e880c68488016345785d8a0000801ba0217def430ee63758f3142b20d7632f1b8d13864e83c50e4118a7caabe94dc353a06c5c12df29768a0fd54903fa76b01b27f1b1038e6ce2a3c5a3c8b07989f5974f'
+            data = str(self.get_argument("data")) if self.get_argument("data") else '0xf86c80850ba43b740082520894838c1fc803d79ddbd1e7de5e8ee0463899ff61a888016345785d8a0000801ca0ad7931b11a83aaf3841085a9375287363b2f42e7c2e663cbac505efbcb16aa4ea06cb9b287c9a91e59675684e552abfeb6d794202fb19ef43f9f44b5e02d9eb581'
             # 0x checking
             rlpdata = "0x" + data if "0x" not in data else data
             # sending raw transaction

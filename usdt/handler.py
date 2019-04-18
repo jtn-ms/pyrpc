@@ -94,14 +94,21 @@ class uBTC_CreateRawTransaction(BaseHandler):
             self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
             print("uBTC_CreateRawTransaction error:{0} in {1}".format(e,get_linenumber()))
 
+from decimal import Decimal
+
 class uBTC_SignRawTransaction(BaseHandler):
+    def get_argument_ex(self,str):
+        import yaml
+        str2dict = yaml.load(self.request.body)
+        return str2dict[str] if str in str2dict.keys() else False
+        
     def post(self):
         btc_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20190310
         try:
             rawdata = self.get_argument("rawdata") if self.get_argument("rawdata") else '02000000011d9c5db5afc7b8f9606569a9d470c435764b8dbf372c473d152c0cff1a77f5f10100000000ffffffff024d9083000000000017a914a9f2cc6c49785beabd9eb26d6d4d1f17fd365d308780841e000000000017a914537d68a8c0e4c04262f419a81aed12ffbad148408700000000'
             privkey = self.get_argument("privkey") if self.get_argument("privkey") else 'cTe4efinSJLgj8BYdkvnH27Dd6QCM6eeZYRPb6ifGLzuS8oH1gam'
             addr = self.get_argument("address") if self.get_argument("address") else 'mtwEVo8FVJrMcms1GyzhbTUSafwDKvyjsq'
-            amount = self.get_argument("amount") if self.get_argument("amount") else OMNI_TRANSACTION_FEE
+            amount = Decimal(self.get_argument("amount")) if self.get_argument("amount") else Decimal(OMNI_TRANSACTION_FEE)
             from btc.handler import BTC_SignRawTransaction
             param_in = BTC_SignRawTransaction.calcprevtx(btc_rpc_connection,addr,amount)
             # sign raw transaction
@@ -193,10 +200,11 @@ class OMNI_CreateRawTransaction(BaseHandler):
     def post(self):
         omni_rpc_connection = AuthServiceProxy(OMNI_RPC_URL)#todo-junying-20190313
         try:
+            # get arguments
             from_addr = self.get_argument("from") if self.get_argument("from") else 'mtwEVo8FVJrMcms1GyzhbTUSafwDKvyjsq'
             to_addr = self.get_argument("to") if self.get_argument("to") else 'mzkUX6sZ3bSqK7wk8sZmrR7wUwY3QJQVaE'
             amount = self.get_argument("amount")
-            fee = float(self.get_argument("fee")) if self.get_argument("fee") else OMNI_TRANSACTION_FEE
+            fee = Decimal(self.get_argument("fee")) if self.get_argument("fee") else Decimal(OMNI_TRANSACTION_FEE)
             # utxos
             from btc.handler import BTC_ListUTXO
             all = BTC_ListUTXO.utxo(omni_rpc_connection,from_addr)
@@ -244,8 +252,8 @@ class OMNI_ListTransActions(BaseHandler):
         return [item['block'] for item in data[0] if "block" in item]
 
     @staticmethod
-    def process(rpc_connection,account="*",tx_counts=10,skips=0,include_watchonly=True):
-        commands = [["omni_listtransactions",account,tx_counts,skips,include_watchonly]]
+    def process(rpc_connection,account="*",tx_counts=10,skips=0):
+        commands = [["omni_listtransactions",account,tx_counts,skips]]
         data = rpc_connection.batch_(commands)
         from utils import filtered
         return [filtered(item,["txid","sendingaddress","referenceaddress","amount","propertyid","blocktime","confirmations","block"]) for item in data[0]]

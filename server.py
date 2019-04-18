@@ -17,7 +17,7 @@ from usdt.handler import OMNI_ListTransActions, OMNI_CrawlTxData
 from eth.handler import ETH_ListAccounts,ETH_GetBalance,ETH_NewAccount,ETH_SendTransaction
 from eth.handler import ETH_CreateRawTransaction, ETH_SignRawTransaction, ETH_SendRawTransaction
 from eth.handler import ETH_BlockNumber, ETH_GetTransactionFromBlock, ETH_GetBlockTransactionCount, ETH_GetBlockTransactions, ETH_CrawlTxData
-from eth.handler import ETH_GetTransactionByHash,ETH_GetBlockByNumber
+from eth.handler import ETH_GetTransactionByHash,ETH_GetBlockByNumber, ETH_GetTransactionCount
 
 from owt.handler import OWT_ListAccounts, OWT_GetBalance, OWT_NewAccount, OWT_SendTransaction
 from owt.handler import OWT_CreateRawTransaction, OWT_SignRawTransaction, OWT_SendRawTransaction
@@ -90,6 +90,7 @@ def make_app():
         (r"/eth/gettransactionfromblock", ETH_GetTransactionFromBlock),
         (r"/eth/getransaction", ETH_GetTransactionByHash),
         (r"/eth/getblock", ETH_GetBlockByNumber),
+        (r"/eth/getransactioncount", ETH_GetTransactionCount),
         ########################################################
         (r"/owt/listaccounts", OWT_ListAccounts),
         (r"/owt/newaccount", OWT_NewAccount),

@@ -159,6 +159,10 @@ class BTC_ListUTXO(BaseHandler):
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # 1 to 1 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+from decimal import Decimal
+from decimal import getcontext
+getcontext().prec = 8                     #use decimal and set precision to solve  'invalid amount' error
+
 class BTC_CreateRawTransaction(BaseHandler):
     @staticmethod
     def process(rpcconn,from_addr,to_addr,amount):
@@ -169,9 +173,7 @@ class BTC_CreateRawTransaction(BaseHandler):
         selected,aggregate = recommended(all,amount)
         # check if enough
         from utils import calcFee
-        from decimal import Decimal
-        from decimal import getcontext
-        getcontext().prec = 8                     #use decimal and set precision to solve  'invalid amount' error
+
         if not isinstance(amount, Decimal):
             amount = Decimal(str(amount))
         fee = calcFee(len(selected))
@@ -255,8 +257,8 @@ getcontext().prec = 8
 
 class BTC_CreateRawTransactionEx(BaseHandler):
     @staticmethod
-    def genearateInParam(rpcconn,src,amount):
-        utxos,gross = [],Decimal('0')
+    def genearateInParam(rpcconn,src,dest):
+        utxos,gross,amount = [],Decimal('0'),sum(dest.values())
         for addr in src:
             # utxos
             all = BTC_ListUTXO.utxo(rpcconn,addr)
@@ -268,36 +270,31 @@ class BTC_CreateRawTransactionEx(BaseHandler):
             gross += aggregate
             # check if enough
             from utils import calcFee
-            fee = calcFee(len(utxos))
-            if gross > fee + amount:
-                break
-        return utxos,gross
+            redundant = gross - calcFee(len(utxos),len(dest.keys())+1) - amount
+            if redundant > 0:
+                return True,utxos,redundant
+        return False,utxos,redundant
     
     @staticmethod
     def generateOutParam(dest):
-        param_out,gross = {},Decimal('0')
+        param_out = {}
         for key,value in dest.items():
-            param_out[key] = Decimal(value)
-            gross += Decimal(value)
-        return param_out,gross
+            param_out[key] = Decimal(value) if isinstance(value, str) else Decimal(str(value))
+        return param_out
         
     @staticmethod
     def process(rpcconn,src,dest):
         # preprocess
-        param_out,amount = BTC_CreateRawTransactionEx.generateOutParam(dest)
-        utxos,gross = BTC_CreateRawTransactionEx.genearateInParam(rpcconn,src,amount)
-        from utils import calcFee
-        fee = calcFee(len(utxos))
-        redundant = gross - fee - amount
-        if redundant < 0:
-            return False, "budget not enough"
+        param_out = BTC_CreateRawTransactionEx.generateOutParam(dest)
+        ret,utxos,redundant = BTC_CreateRawTransactionEx.genearateInParam(rpcconn,src,param_out)
+        if not ret: return False, "budget not enough"
+        # param_out refinement
+        param_out[src[0]] = redundant if src[0] not in param_out.keys() else param_out[src[0]] + redundant
+        print(param_out)
+        # param_in refinement
         from utils import filtered
         param_in = [filtered(item,["txid","vout"]) for item in utxos]
-        for addr in src:
-            if redundant == 0: break
-            if addr not in param_out.keys(): param_out[addr] = redundant; redundant = 0; break
-        if redundant: param_out[src[0]] = redundant
-        # process
+        print(param_in)
         return True, {"hex":rpcconn.batch_([["createrawtransaction",param_in,param_out]]),"utxos":utxos, "txout":param_out}
 
     def get_argument_ex(self,str):
@@ -309,11 +306,9 @@ class BTC_CreateRawTransactionEx(BaseHandler):
         btc_rpc_connection = AuthServiceProxy(BTC_RPC_URL)#todo-junying-20190310
         try:
             src = self.get_argument_ex("src") if self.get_argument_ex("src") else ['2N8jq3e7eBhrrd9d1dMNCvkwtsvN9md2Hmd']
-            dest = self.get_argument_ex("dest") if self.get_argument_ex("dest") else {'2MzrgJmFfHB1mz4QqwuSWePbb183TxHR1wA':0.01}
+            dest = self.get_argument_ex("dest") if self.get_argument_ex("dest") else {'2MzrgJmFfHB1mz4QqwuSWePbb183TxHR1wA':'0.01'}
             ret, rsp = BTC_CreateRawTransactionEx.process(btc_rpc_connection,src,dest)
-            if not ret:
-                self.write(json.dumps(BaseHandler.error_ret_with_data(rsp)))
-                return 
+            if not ret: self.write(json.dumps(BaseHandler.error_ret_with_data(rsp))); return 
             self.write(json.dumps(BaseHandler.success_ret_with_data(rsp), default=decimal_default))
         except Exception as e:
             self.write(json.dumps(BaseHandler.error_ret_with_data("error: %s"%e)))
@@ -321,8 +316,8 @@ class BTC_CreateRawTransactionEx(BaseHandler):
 
 class BTC_SignRawTransactionEx(BaseHandler):
     @staticmethod
-    def calcprevtx(rpcconn,src,amount):
-        utxos,gross = BTC_CreateRawTransactionEx.genearateInParam(rpcconn,src,amount)
+    def calcprevtx(rpcconn,src,dest):
+        ret,utxos,redundant = BTC_CreateRawTransactionEx.genearateInParam(rpcconn,src,dest)
         from utils import filtered
         return [filtered(item,["txid","vout","amount","redeemScript","scriptPubKey"]) for item in utxos]
 
@@ -340,8 +335,8 @@ class BTC_SignRawTransactionEx(BaseHandler):
             dest = self.get_argument_ex("dest") if self.get_argument_ex("dest") else {'2MzrgJmFfHB1mz4QqwuSWePbb183TxHR1wA':0.01}
             # preprocess
             addrs,privkeys = src.keys(),src.values()
-            _, amount = BTC_CreateRawTransactionEx.generateOutParam(dest)
-            param_in = BTC_SignRawTransactionEx.calcprevtx(btc_rpc_connection,addrs,amount)
+            param_out = BTC_CreateRawTransactionEx.generateOutParam(dest)
+            param_in = BTC_SignRawTransactionEx.calcprevtx(btc_rpc_connection,addrs,param_out)
             commands = [["signrawtransactionwithkey",rawdata,privkeys,param_in]]        
             rsp = btc_rpc_connection.batch_(commands)
             self.write(json.dumps(BaseHandler.success_ret_with_data(rsp), default=decimal_default))

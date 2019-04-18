@@ -78,6 +78,7 @@ class OWT_SendTransaction(BaseHandler):
     @staticmethod
     def checkBalance(rpc_connection,addr,value,gas,gas_price):
         balance = OWT_GetBalance.get_balance(rpc_connection,addr) * 10 ** 18
+        print balance
         if balance < value + gas*gas_price:
             err_msg = "balance(%d) is below value(%d) + gas(%d) * gasprice(%d)"%(balance,value,gas,gas_price)
             return False,err_msg

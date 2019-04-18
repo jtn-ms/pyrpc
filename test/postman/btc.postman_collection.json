@@ -183,9 +183,12 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "localhost:9000/btc/createrawtransaction?from&to&amount=0.02",
+					"raw": "192.168.10.79:9000/btc/createrawtransaction?from&to&amount=0.02",
 					"host": [
-						"localhost"
+						"192",
+						"168",
+						"10",
+						"79"
 					],
 					"port": "9000",
 					"path": [
@@ -204,6 +207,72 @@
 						{
 							"key": "amount",
 							"value": "0.02"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "createrawtransactionEx",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0a0498cb-8eb2-482c-92b4-4d1e2a67407c",
+						"exec": [
+							"{",
+							"    \"src\": [",
+							"        \"2N8jq3e7eBhrrd9d1dMNCvkwtsvN9md2Hmd\"",
+							"    ],",
+							"    \"dest\": {",
+							"        \"2MzrgJmFfHB1mz4QqwuSWePbb183TxHR1wA\": 0.01",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"src\": [\n        \"2N8jq3e7eBhrrd9d1dMNCvkwtsvN9md2Hmd\"\n    ],\n    \"dest\": {\n        \"2MzrgJmFfHB1mz4QqwuSWePbb183TxHR1wA\": 0.01\n    }\n}"
+				},
+				"url": {
+					"raw": "localhost:9000/btc/createrawtransactionex?",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"btc",
+						"createrawtransactionex"
+					],
+					"query": [
+						{
+							"key": "from",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "to",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "amount",
+							"value": "0.02",
+							"disabled": true
 						}
 					]
 				}
@@ -252,6 +321,58 @@
 			"response": []
 		},
 		{
+			"name": "signrawtransactionEx",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"rawdata\": \"02000000015e5cdbd205fe7811860edba20f0085d0e3b650f295ca3cde2c81dcb66068e33f0000000000ffffffff0140420f000000000017a914537d68a8c0e4c04262f419a81aed12ffbad148408700000000\",\n    \"src\": {\n        \"2N8jq3e7eBhrrd9d1dMNCvkwtsvN9md2Hmd\": \"cU27rdRN2uazREh9bBiWQq9e1ZPLAmEguk8ZBuBWKf6a8oav6y73\"\n    },\n    \"dest\": {\n        \"2MzrgJmFfHB1mz4QqwuSWePbb183TxHR1wA\": 0.01\n    }\n}"
+				},
+				"url": {
+					"raw": "localhost:9000/btc/signrawtransactionex?",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"btc",
+						"signrawtransactionex"
+					],
+					"query": [
+						{
+							"key": "rawdata",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "privkey",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "address",
+							"value": null,
+							"disabled": true
+						},
+						{
+							"key": "amount",
+							"value": "0.02",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "sendrawtransaction",
 			"request": {
 				"method": "POST",
@@ -261,7 +382,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "localhost:9000/btc/sendrawtransaction?rawdata",
+					"raw": "localhost:9000/btc/sendrawtransaction?rawdata=020000000001015e5cdbd205fe7811860edba20f0085d0e3b650f295ca3cde2c81dcb66068e33f00000000171600142bf9ada27ec30b4f293ec6f61d98ca00c4d4bb2affffffff0140420f000000000017a914537d68a8c0e4c04262f419a81aed12ffbad148408702473044022014c8e78f57a35444e80003ad7eff2afa7d9d7449f6e82c07c7cf842c2f0d859c0220504ee1eeda08802900a9b71bb1a412db11ce3a88efd1e9b3551e7a1eaf0a0d80012103760b1cfa248f4bf9a95e4812547da273eeccb1cef88a520267685263609e090b00000000",
 					"host": [
 						"localhost"
 					],
@@ -273,7 +394,7 @@
 					"query": [
 						{
 							"key": "rawdata",
-							"value": null
+							"value": "020000000001015e5cdbd205fe7811860edba20f0085d0e3b650f295ca3cde2c81dcb66068e33f00000000171600142bf9ada27ec30b4f293ec6f61d98ca00c4d4bb2affffffff0140420f000000000017a914537d68a8c0e4c04262f419a81aed12ffbad148408702473044022014c8e78f57a35444e80003ad7eff2afa7d9d7449f6e82c07c7cf842c2f0d859c0220504ee1eeda08802900a9b71bb1a412db11ce3a88efd1e9b3551e7a1eaf0a0d80012103760b1cfa248f4bf9a95e4812547da273eeccb1cef88a520267685263609e090b00000000"
 						}
 					]
 				}
