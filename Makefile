@@ -29,6 +29,10 @@ pytest:
 
 zip:
 	@tar cvf ../rpc.tar.gz ../rpc
+
+up:
+	@wormhole send ../rpc.tar.gz
+
 # auto generate
 autogen: genowt genup
 
