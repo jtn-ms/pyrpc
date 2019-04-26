@@ -1,4 +1,7 @@
 # pyrpc
+[![PyPI Version](https://img.shields.io/pypi/v/pyrpc.svg)](https://pypi.python.org/pypi/pyrpc)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/pyrpc.svg)](https://pypi.python.org/pypi/pyrpc)
+[![Travis Build Status](https://img.shields.io/travis/rdegges/pyrpc.svg)](https://travis-ci.org/rdegges/pyrpc)
 ### Install
     git clone https://github.com/bluesea0125/pyrpc
     cd pyrpc
