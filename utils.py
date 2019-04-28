@@ -225,6 +225,8 @@ def str2dict(str):
     import yaml
     return yaml.load(str)
 
+def json2dict(str):
+    return json.loads(str)
 
 if __name__ == "__main__":
     test_get_privkey()

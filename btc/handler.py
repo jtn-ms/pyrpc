@@ -298,8 +298,8 @@ class BTC_CreateRawTransactionEx(BaseHandler):
         return True, {"hex":rpcconn.batch_([["createrawtransaction",param_in,param_out]]),"utxos":utxos, "txout":param_out}
 
     def get_argument_ex(self,str):
-        import yaml
-        str2dict = yaml.load(self.request.body)
+        from utils import json2dict
+        str2dict = json2dict(self.request.body)
         return str2dict[str] if str in str2dict.keys() else False
     
     def post(self):
@@ -322,8 +322,8 @@ class BTC_SignRawTransactionEx(BaseHandler):
         return [filtered(item,["txid","vout","amount","redeemScript","scriptPubKey"]) for item in utxos]
 
     def get_argument_ex(self,str):
-        import yaml
-        str2dict = yaml.load(self.request.body)
+        from utils import json2dict
+        str2dict = json2dict(self.request.body)
         return str2dict[str] if str in str2dict.keys() else False
     
     def post(self):

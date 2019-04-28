@@ -98,8 +98,8 @@ from decimal import Decimal
 
 class uBTC_SignRawTransaction(BaseHandler):
     def get_argument_ex(self,str):
-        import yaml
-        str2dict = yaml.load(self.request.body)
+        from utils import json2dict
+        str2dict = json2dict(self.request.body)
         return str2dict[str] if str in str2dict.keys() else False
         
     def post(self):

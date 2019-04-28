@@ -16,10 +16,10 @@ stop: clean
 	@pkill -9 python
 
 clean:
-	@find . -name nohup.out -exec rm -f {} \;
-	@find . -regex ".*\.\(pyc\)" | xargs rm
-	@rm -rf test/__pycache__
-	@rm .cache -rf
+	@find -name nohup.out -exec rm -f {} \;
+	@find -name "*.pyc" -exec rm -f {} \;
+	@find -name __pycache__ | xargs rm -rf 
+	@find -name .cache | xargs rm -rf 
 	
 check:
 	@ps axu | grep server.py
