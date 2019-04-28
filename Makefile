@@ -28,9 +28,9 @@ pytest:
 	@py.test
 
 zip:
-	@tar cvf ../rpc.tar.gz ../rpc
+	@tar cvf ../rpc.tar.gz ../pyrpc
 
-up:
+replace:
 	@wormhole send ../rpc.tar.gz
 
 # auto generate
