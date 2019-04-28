@@ -28,6 +28,7 @@ pytest:
 	@py.test
 
 zip:
+	@rm ../rpc.tar.gz
 	@tar cvf ../rpc.tar.gz ../pyrpc
 
 replace:
