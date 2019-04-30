@@ -29,7 +29,7 @@ pytest:
 
 zip:
 	@find ../ -name rpc.tar.gz -exec rm -f {} \;
-	@tar cvf ../rpc.tar.gz ../pyrpc
+	@tar pcvf ../rpc.tar.gz ../pyrpc --exclude=../pyrpc/README.md --exclude=../pyrpc/Makefile --exclude=../pyrpc/.travis.yml --exclude=../pyrpc/.vscode
 
 replace:
 	@wormhole send ../rpc.tar.gz

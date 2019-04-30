@@ -14,9 +14,9 @@ from utils import str2dict, list2dict, post, get
 def btc_accounts(minconf=''):
     fname = 'btc/listaccounts'
     params = {'minconf':minconf}
-    res = get(fname,params)
-    if res.status_code != 200:
-        return []
+    ret,res = get(fname,params)
+    if not ret: print(res); return []
+    if res.status_code != 200: return []
     res_dict = str2dict(res.text)
     if res_dict['success'] == 'false' or \
        'data' not in res_dict.keys():
@@ -25,8 +25,7 @@ def btc_accounts(minconf=''):
 
 def btc_transactions_all(accounts):
     transactions = []
-    for account in accounts:
-        transactions += btc_transactions(account)
+    for account in accounts: transactions += btc_transactions(account)
     return  [transaction for transaction in transactions if transaction]
     
 def btc_transactions(account='',
@@ -38,7 +37,8 @@ def btc_transactions(account='',
                 'count':count,
                 'from':skips
              }
-    res = post(fname,params)
+    ret,res = post(fname,params)
+    if not ret: print(res); return []
     if res.status_code != 200:
         return []
     res_dict = str2dict(res.text)

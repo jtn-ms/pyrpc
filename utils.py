@@ -57,10 +57,18 @@ def list2dict(var):
 
 import requests
 def post(fname='eth/listaccounts',params={}):
-    return requests.post('http://%s:%d/%s'%(IP_ADDR,PORT,fname),params)
+    try:
+        return True, requests.post('http://%s:%d/%s'%(IP_ADDR,PORT,fname),params)
+    except Exception as e:
+        #print("post operation err: {0}".format(e))
+        return False,"connection failure!!!"
 
 def get(fname='eth/listaccounts',params={}):
-    return requests.get('http://%s:%d/%s'%(IP_ADDR,PORT,fname),params)
+    try:
+        return True,requests.get('http://%s:%d/%s'%(IP_ADDR,PORT,fname),params)
+    except Exception as e:
+        # print("post operation err: {0}".format(e))   
+        return False,"connection failure!!!"
 
 ##################################################################
 ## ethereum ######################################################
