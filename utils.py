@@ -5,6 +5,7 @@ Created on Thu Mar 15 14:30:38 2019
 
 import decimal
 import sys
+import json
 
 def str_to_decimal(x):
     if sys.version[0] > 2:
@@ -197,8 +198,6 @@ def distribute(all,oldkey,newkey,amount):
 ##################################################################
 ## encryption ####################################################
 ##################################################################
-
-import json
 
 """
 IN:  [{'txid':'123456789','amount':0.233}]

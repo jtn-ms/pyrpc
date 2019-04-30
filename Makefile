@@ -28,11 +28,13 @@ pytest:
 	@py.test
 
 zip:
-	@rm ../rpc.tar.gz
+	@find ../ -name rpc.tar.gz -exec rm -f {} \;
 	@tar cvf ../rpc.tar.gz ../pyrpc
 
 replace:
 	@wormhole send ../rpc.tar.gz
+
+update: zip replace
 
 # auto generate
 autogen: genowt genup
