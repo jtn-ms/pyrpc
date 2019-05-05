@@ -27,7 +27,7 @@ check:
 pytest:
 	@py.test
 
-zip:
+zip: clean
 	@find ../ -name rpc.tar.gz -exec rm -f {} \;
 	@tar pcvf ../rpc.tar.gz ../pyrpc --exclude=../pyrpc/README.md --exclude=../pyrpc/Makefile --exclude=../pyrpc/.travis.yml --exclude=../pyrpc/.vscode
 

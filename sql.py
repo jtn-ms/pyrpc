@@ -21,22 +21,31 @@ def close(conn):
 
 def execute(conn,cmd):
     cur = conn.cursor()
-    cur.execute(cmd)
+    try:
+        cur.execute(cmd)
+    except Exception as e:
+        return "%s"%e
     return cur.fetchall()
 
 def run(cmd):
     conn = open()
-    result = execute(conn,cmd)
+    try:
+        result = execute(conn,cmd)
+    except Exception as e:
+        result = "%s"%e    
     close(conn)
     return result
 
 def get_column_values(conn,table_name,column_name):
     cmd = "SELECT {0} FROM {1}".format(column_name,table_name)
-    return execute(conn,cmd)
+    try:
+        return execute(conn,cmd)
+    except Exception as e:
+        return "%s"%e
     
 def main():
     conn = open()
-    print(get_column_values(conn,'t_ethereum_accounts','address'))
+    print(get_column_values(conn,'t_eth_accounts','address'))
     close(conn)
 
 if __name__ == "__main__":
